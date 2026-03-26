@@ -1,0 +1,85 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  gap: 12px;
+}
+
+.toolbar__left,
+.toolbar__center,
+.toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar__date-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-left: 8px;
+}
+
+.toolbar__btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.toolbar__btn:hover {
+  background: var(--color-hover);
+}
+
+.toolbar__btn--primary {
+  background: var(--color-bg);
+  font-weight: 500;
+}
+
+.toolbar__btn--icon {
+  font-size: 20px;
+  padding: 4px 10px;
+  line-height: 1;
+}
+
+.toolbar__view-btn {
+  border-color: transparent;
+}
+
+.toolbar__view-btn--active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.toolbar__view-btn--active:hover {
+  background: var(--color-accent-hover);
+}
+
+.toolbar__btn--active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.toolbar__btn--active:hover {
+  background: var(--color-accent-hover);
+}
+
+.toolbar__btn--add-projects {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+  font-weight: 500;
+}
+
+.toolbar__btn--add-projects:hover {
+  background: var(--color-accent-hover);
+}

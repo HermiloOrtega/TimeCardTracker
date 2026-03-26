@@ -1,0 +1,148 @@
+.project-modal {
+  width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.project-modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.project-modal__section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.project-modal__section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Color swatches */
+.project-modal__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-modal__swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.project-modal__swatch:hover {
+  transform: scale(1.15);
+}
+
+.project-modal__swatch--selected {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--color-text-primary);
+  transform: scale(1.15);
+}
+
+/* Category pills */
+.project-modal__cat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.project-modal__cat-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.project-modal__cat-pill:hover {
+  background: var(--color-hover);
+}
+
+/* Add button */
+.project-modal__add-btn {
+  align-self: flex-start;
+}
+
+/* Project / category list */
+.project-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.project-modal__list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--color-bg);
+  font-size: 13px;
+}
+
+.project-modal__item-name {
+  flex: 1;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.project-modal__item-cat {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.project-modal__delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.project-modal__delete-btn:hover {
+  background: var(--color-hover);
+  color: var(--color-danger);
+}
+
+.project-modal__delete-btn--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.project-modal__delete-btn--disabled:hover {
+  color: var(--color-text-secondary);
+  background: none;
+}
+
+.project-modal__empty-hint {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  padding: 4px 0;
+}
