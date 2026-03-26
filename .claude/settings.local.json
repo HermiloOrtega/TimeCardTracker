@@ -4,7 +4,8 @@
       "Bash(find . -not -path ./.git/* -type d)",
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(wc -l /h/Dev/Builds/TimeCardTracker/src/components/*/*.tsx)"
     ]
   }
 }
