@@ -15,7 +15,7 @@ export default function App() {
   const { projects, addProject, deleteProject }                              = useProjects();
   const { entries, addEntry, updateEntry, deleteEntry, scrubProjectId }      = useTimeEntries();
   const { settings, setTheme, setTimeRange }                                 = useSettings();
-  const { todos, addTodo, updateTodo, deleteTodo, clearAllTodos }            = useTodos();
+  const { todos, addTodo, updateTodo, deleteTodo, duplicateTodo, clearAllTodos } = useTodos();
 
   function handleDeleteProject(id: string) {
     scrubProjectId(id);
@@ -42,6 +42,7 @@ export default function App() {
         onAddTodo={addTodo}
         onUpdateTodo={updateTodo}
         onDeleteTodo={deleteTodo}
+        onDuplicateTodo={duplicateTodo}
         onClearAllTodos={clearAllTodos}
       />
     </div>

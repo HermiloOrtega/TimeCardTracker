@@ -92,7 +92,7 @@ Categories are color-coded — their color carries through to all entries in tha
 
 ### 2. Log Time
 
-**Click any hour slot** on the calendar to open the entry form:
+**Click any hour slot** on the calendar to open the entry form, or use the **+ Task** button in the toolbar to open the form pre-filled with today's date and current hour:
 
 - Select the **date**, **start time**, and **end time**
 - Add a **description** of the work
@@ -101,16 +101,33 @@ Categories are color-coded — their color carries through to all entries in tha
 
 Entries appear as color-coded blocks on the grid. Multi-hour entries span across rows.
 
+**Multiple entries in the same slot** are shown side-by-side with equal widths:
+- 1 entry → 100% width
+- 2 entries → 50% each
+- 3 entries → 33% each
+- More than 3 → scrolls horizontally at 33% minimum width each
+
 ---
 
-### 3. Edit or Delete Entries
+### 3. Edit, Duplicate, or Delete Entries
 
 - **Click an existing entry block** to open the edit modal
-- Change any field and save, or click **Delete** to remove it
+- Change any field and **Save**, or click **Delete** to remove it
+- Click **Duplicate** to create a copy of the entry (useful for recurring tasks)
 
 ---
 
-### 4. Navigate the Calendar
+### 4. Drag Existing Calendar Entries
+
+You can **drag and drop** existing calendar entries to a different time slot:
+
+1. Grab an entry block and drag it to another slot
+2. A **confirmation dialog** appears asking you to confirm the move
+3. Confirm to update the entry's date and time (duration is preserved)
+
+---
+
+### 5. Navigate the Calendar
 
 Use the toolbar controls:
 
@@ -124,9 +141,12 @@ The current day is highlighted. Weekends are visually distinguished in week view
 
 ---
 
-### 5. To-Do Sidebar
+### 6. To-Do Sidebar
 
 The **To-Do panel** on the left side of the screen is a bucket list for tasks you plan to work on.
+
+**Collapse / Expand:**
+- Click the **‹ / ›** toggle button in the sidebar header to collapse the panel to a narrow strip or expand it back to full width. Your tasks are preserved while collapsed.
 
 **Adding tasks:**
 - Type a task title in the input field and press **Enter** or click **+**
@@ -134,12 +154,13 @@ The **To-Do panel** on the left side of the screen is a bucket list for tasks yo
 
 **Managing tasks:**
 - Click **✏️** to edit a task's title or note inline
-- Click **🗑** to delete a single task
+- Click **⧉** to duplicate a task
+- Click **✕** to delete a single task
 - Click **Clear all** (appears in the header when tasks exist) to wipe the entire list — confirms before deleting
 
 ---
 
-### 6. Drag Tasks from To-Do to Calendar
+### 7. Drag Tasks from To-Do to Calendar
 
 Tasks in the To-Do sidebar can be **dragged and dropped** directly onto any calendar time slot.
 
@@ -158,7 +179,7 @@ You can still **click any slot directly** to add entries without using the To-Do
 
 ---
 
-### 7. Analytics
+### 8. Analytics
 
 Click the **Analytics** button to open the analytics panel:
 
@@ -168,7 +189,7 @@ Click the **Analytics** button to open the analytics panel:
 
 ---
 
-### 8. Export to Excel
+### 9. Export to Excel
 
 Click the **Export** button:
 
@@ -240,9 +261,9 @@ src/
     ├── Calendar/         # Main shell — layout, state, drag-drop orchestration
     ├── TimeGrid/         # Visual hour grid with drag-over support
     ├── Toolbar/          # Navigation, view controls, theme toggle, time range selector
-    ├── TodoSidebar/      # To-Do panel with add, edit, delete, clear all, drag
+    ├── TodoSidebar/      # To-Do panel with add, edit, delete, duplicate, clear all, drag, collapse
     ├── ConfirmDropModal/ # Confirmation dialog when dropping a task onto the calendar
-    ├── EntryModal/       # Add/edit time entry
+    ├── EntryModal/       # Add/edit/duplicate time entry
     ├── ProjectModal/     # Manage projects and categories
     ├── ExportModal/      # Excel export with date range picker
     ├── TimeEntryBlock/   # Absolutely-positioned multi-hour entry blocks

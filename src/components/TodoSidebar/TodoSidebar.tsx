@@ -7,6 +7,7 @@ interface TodoSidebarProps {
   onAdd: (title: string, note?: string) => void;
   onUpdate: (id: string, title: string, note?: string) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
   onClearAll: () => void;
 }
 
@@ -16,11 +17,12 @@ interface EditState {
   note: string;
 }
 
-export function TodoSidebar({ todos, onAdd, onUpdate, onDelete, onClearAll }: TodoSidebarProps) {
+export function TodoSidebar({ todos, onAdd, onUpdate, onDelete, onDuplicate, onClearAll }: TodoSidebarProps) {
   const [newTitle, setNewTitle] = useState('');
   const [newNote,  setNewNote]  = useState('');
   const [showAddNote, setShowAddNote] = useState(false);
   const [editing,  setEditing]  = useState<EditState | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   function handleAdd() {
     if (!newTitle.trim()) return;
@@ -53,11 +55,11 @@ export function TodoSidebar({ todos, onAdd, onUpdate, onDelete, onClearAll }: To
   }
 
   return (
-    <aside className="todo-sidebar">
+    <aside className={`todo-sidebar${collapsed ? ' todo-sidebar--collapsed' : ''}`}>
       <div className="todo-sidebar__header">
         <h2 className="todo-sidebar__title">To-Do</h2>
         <div className="todo-sidebar__header-actions">
-          {todos.length > 0 && (
+          {!collapsed && todos.length > 0 && (
             <button
               className="todo-sidebar__clear-btn"
               onClick={handleClearAll}
@@ -68,11 +70,19 @@ export function TodoSidebar({ todos, onAdd, onUpdate, onDelete, onClearAll }: To
             </button>
           )}
           <span className="todo-sidebar__count">{todos.length}</span>
+          <button
+            className="todo-sidebar__collapse-btn"
+            onClick={() => setCollapsed(v => !v)}
+            title={collapsed ? 'Expand To-Do' : 'Collapse To-Do'}
+            aria-label={collapsed ? 'Expand' : 'Collapse'}
+          >
+            {collapsed ? '›' : '‹'}
+          </button>
         </div>
       </div>
 
       {/* Add new */}
-      <div className="todo-sidebar__add">
+      {!collapsed && <div className="todo-sidebar__add">
         <div className="todo-sidebar__add-row">
           <input
             className="todo-sidebar__input"
@@ -109,14 +119,14 @@ export function TodoSidebar({ todos, onAdd, onUpdate, onDelete, onClearAll }: To
             rows={2}
           />
         )}
-      </div>
+      </div>}
 
-      <div className="todo-sidebar__hint">
+      {!collapsed && <div className="todo-sidebar__hint">
         Drag tasks onto calendar slots
-      </div>
+      </div>}
 
       {/* List */}
-      <ul className="todo-sidebar__list">
+      {!collapsed && <ul className="todo-sidebar__list">
         {todos.length === 0 && (
           <li className="todo-sidebar__empty">No tasks yet</li>
         )}
@@ -167,19 +177,27 @@ export function TodoSidebar({ todos, onAdd, onUpdate, onDelete, onClearAll }: To
                     ✏️
                   </button>
                   <button
+                    className="todo-sidebar__icon-btn todo-sidebar__icon-btn--copy"
+                    onClick={e => { e.stopPropagation(); onDuplicate(todo.id); }}
+                    aria-label="Duplicate task"
+                    title="Duplicate"
+                  >
+                    ⧉
+                  </button>
+                  <button
                     className="todo-sidebar__icon-btn todo-sidebar__icon-btn--danger"
                     onClick={e => { e.stopPropagation(); onDelete(todo.id); }}
                     aria-label="Delete task"
                     title="Delete"
                   >
-                    🗑
+                    ✕
                   </button>
                 </div>
               </>
             )}
           </li>
         ))}
-      </ul>
+      </ul>}
     </aside>
   );
 }

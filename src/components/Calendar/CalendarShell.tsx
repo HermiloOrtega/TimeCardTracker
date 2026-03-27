@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { ViewMode, TimeEntry, Project, CategoryDef, AppSettings, TodoItem, Theme, TimeRange } from '../../models/types';
-import { getWeekDays, addDays, getMonday, formatDateRange, getHourSlots } from '../../utils/dateUtils';
+import { getWeekDays, addDays, getMonday, formatDateRange, getHourSlots, toDateString } from '../../utils/dateUtils';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { WeekView } from '../WeekView/WeekView';
 import { DailyView } from '../DailyView/DailyView';
@@ -39,6 +39,7 @@ interface CalendarShellProps {
   onAddTodo: (title: string, note?: string) => void;
   onUpdateTodo: (id: string, title: string, note?: string) => void;
   onDeleteTodo: (id: string) => void;
+  onDuplicateTodo: (id: string) => void;
   onClearAllTodos: () => void;
 }
 
@@ -60,6 +61,7 @@ export function CalendarShell({
   onAddTodo,
   onUpdateTodo,
   onDeleteTodo,
+  onDuplicateTodo,
   onClearAllTodos,
 }: CalendarShellProps) {
   const [appView, setAppView]                   = useState<AppView>('calendar');
@@ -103,6 +105,13 @@ export function CalendarShell({
     setEntryModalState({ mode: 'add', date, startHour: hour });
   }
 
+  function handleAddTaskClick() {
+    const today = toDateString(new Date());
+    const hour  = new Date().getHours();
+    const startHour = hourSlots.includes(hour) ? hour : hourSlots[0];
+    setEntryModalState({ mode: 'add', date: today, startHour });
+  }
+
   function handleEntryClick(entry: TimeEntry) {
     setEntryModalState({ mode: 'edit', entry });
   }
@@ -112,12 +121,33 @@ export function CalendarShell({
     else onAddEntry(payload);
   }
 
+  function handleDuplicateEntry(payload: Omit<TimeEntry, 'id'>) {
+    onAddEntry(payload);
+  }
+
   function handleToggleTheme() {
     onSetTheme(settings.theme === 'light' ? 'dark' : 'light');
   }
 
   function handleTodoDrop(todoId: string, date: string, hour: number) {
     setDropPending({ todoId, date, hour });
+  }
+
+  function handleEntryDrop(entryId: string, date: string, startHour: number) {
+    const entry = entries.find(e => e.id === entryId);
+    if (!entry) return;
+    if (entry.date === date && entry.startHour === startHour) return;
+    const ok = window.confirm(
+      `Move "${entry.description}" to ${date} at ${startHour}:00?`
+    );
+    if (!ok) return;
+    const duration = entry.endHour - entry.startHour;
+    onUpdateEntry(entryId, {
+      ...entry,
+      date,
+      startHour,
+      endHour: startHour + duration,
+    });
   }
 
   function handleDropConfirm(payload: Omit<TimeEntry, 'id'>) {
@@ -142,6 +172,7 @@ export function CalendarShell({
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
+        onAddTaskClick={handleAddTaskClick}
         onAddProjectsClick={() => setProjectModalOpen(true)}
         onAnalyticsClick={() => setAppView(v => v === 'analytics' ? 'calendar' : 'analytics')}
         onExportClick={() => setExportModalOpen(true)}
@@ -155,6 +186,7 @@ export function CalendarShell({
           onAdd={onAddTodo}
           onUpdate={onUpdateTodo}
           onDelete={onDeleteTodo}
+          onDuplicate={onDuplicateTodo}
           onClearAll={onClearAllTodos}
         />
 
@@ -176,6 +208,7 @@ export function CalendarShell({
               onSlotClick={handleSlotClick}
               onEntryClick={handleEntryClick}
               onTodoDrop={handleTodoDrop}
+              onEntryDrop={handleEntryDrop}
             />
           ) : (
             <WeekView
@@ -187,6 +220,7 @@ export function CalendarShell({
               onSlotClick={handleSlotClick}
               onEntryClick={handleEntryClick}
               onTodoDrop={handleTodoDrop}
+              onEntryDrop={handleEntryDrop}
             />
           )}
         </div>
@@ -210,6 +244,7 @@ export function CalendarShell({
             projects={projects}
             categories={categories}
             onSave={handleSave}
+            onDuplicate={handleDuplicateEntry}
             onDelete={onDeleteEntry}
             onClose={() => setEntryModalState(null)}
           />

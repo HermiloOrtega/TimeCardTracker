@@ -20,12 +20,13 @@ type EntryModalProps = (AddMode | EditMode) & {
   projects: Project[];
   categories: CategoryDef[];
   onSave: (payload: Omit<TimeEntry, 'id'>) => void;
+  onDuplicate?: (payload: Omit<TimeEntry, 'id'>) => void;
   onDelete?: (id: string) => void;
   onClose: () => void;
 };
 
 export function EntryModal(props: EntryModalProps) {
-  const { projects, categories, onSave, onDelete, onClose } = props;
+  const { projects, categories, onSave, onDuplicate, onDelete, onClose } = props;
 
   const isEdit  = props.mode === 'edit';
   const initial = isEdit ? props.entry : null;
@@ -46,10 +47,23 @@ export function EntryModal(props: EntryModalProps) {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
   }
 
+  function buildPayload(): Omit<TimeEntry, 'id'> | null {
+    if (!description.trim()) { setError('Description is required.'); return null; }
+    if (endHour <= startHour) { setError('End time must be after start time.'); return null; }
+    return { date, startHour, endHour, description: description.trim(), projectIds: selectedProjectIds };
+  }
+
   function handleSave() {
-    if (!description.trim()) { setError('Description is required.'); return; }
-    if (endHour <= startHour) { setError('End time must be after start time.'); return; }
-    onSave({ date, startHour, endHour, description: description.trim(), projectIds: selectedProjectIds });
+    const payload = buildPayload();
+    if (!payload) return;
+    onSave(payload);
+    onClose();
+  }
+
+  function handleDuplicate() {
+    const payload = buildPayload();
+    if (!payload || !onDuplicate) return;
+    onDuplicate(payload);
     onClose();
   }
 
@@ -133,6 +147,11 @@ export function EntryModal(props: EntryModalProps) {
             <button className="modal__btn modal__btn--danger" onClick={handleDelete}>Delete</button>
           )}
           <div className="modal__footer-right">
+            {isEdit && onDuplicate && (
+              <button className="modal__btn modal__btn--secondary" onClick={handleDuplicate} title="Duplicate this entry">
+                Duplicate
+              </button>
+            )}
             <button className="modal__btn modal__btn--secondary" onClick={onClose}>Cancel</button>
             <button className="modal__btn modal__btn--primary" onClick={handleSave}>
               {isEdit ? 'Save' : 'Add'}

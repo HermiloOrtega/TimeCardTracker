@@ -10,9 +10,10 @@ interface DailyViewProps {
   onSlotClick: (date: string, hour: number) => void;
   onEntryClick: (entry: TimeEntry) => void;
   onTodoDrop?: (todoId: string, date: string, hour: number) => void;
+  onEntryDrop?: (entryId: string, date: string, hour: number) => void;
 }
 
-export function DailyView({ day, hourSlots, entries, projects, categories, onSlotClick, onEntryClick, onTodoDrop }: DailyViewProps) {
+export function DailyView({ day, hourSlots, entries, projects, categories, onSlotClick, onEntryClick, onTodoDrop, onEntryDrop }: DailyViewProps) {
   return (
     <TimeGrid
       days={[day]}
@@ -23,6 +24,7 @@ export function DailyView({ day, hourSlots, entries, projects, categories, onSlo
       onSlotClick={onSlotClick}
       onEntryClick={onEntryClick}
       onTodoDrop={onTodoDrop}
+      onEntryDrop={onEntryDrop}
     />
   );
 }

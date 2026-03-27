@@ -20,26 +20,69 @@ interface TimeGridProps {
   onSlotClick: (date: string, hour: number) => void;
   onEntryClick: (entry: TimeEntry) => void;
   onTodoDrop?: (todoId: string, date: string, hour: number) => void;
+  onEntryDrop?: (entryId: string, date: string, hour: number) => void;
 }
 
 interface SlotStripProps {
   entry: TimeEntry;
+  count: number;       // total entries in this slot
   projects: Project[];
   categories: CategoryDef[];
   onClick: (entry: TimeEntry) => void;
 }
 
-function SlotStrip({ entry, projects, categories, onClick }: SlotStripProps) {
+/**
+ * Greedy column-assignment for multi-hour entries in a single day column.
+ * Returns a map of entryId → { col, totalCols } so overlapping blocks
+ * can be tiled side-by-side at equal widths.
+ */
+function assignColumnLayout(entries: TimeEntry[]): Map<string, { col: number; totalCols: number }> {
+  const layout = new Map<string, { col: number; totalCols: number }>();
+  if (entries.length === 0) return layout;
+
+  const sorted = [...entries].sort((a, b) => a.startHour - b.startHour);
+  const colEnds: number[] = [];          // end hour of the last entry in each column
+  const entryCol = new Map<string, number>();
+
+  for (const e of sorted) {
+    const col = colEnds.findIndex(endH => endH <= e.startHour);
+    const assignedCol = col === -1 ? colEnds.length : col;
+    entryCol.set(e.id, assignedCol);
+    colEnds[assignedCol] = e.endHour;
+  }
+
+  const totalCols = colEnds.length;
+  for (const e of sorted) {
+    layout.set(e.id, { col: entryCol.get(e.id)!, totalCols });
+  }
+  return layout;
+}
+
+function SlotStrip({ entry, count, projects, categories, onClick }: SlotStripProps) {
   const color = deriveBlockColor(entry.projectIds, projects, categories);
   const names = projects
     .filter(p => entry.projectIds.includes(p.id))
     .map(p => p.name)
     .join(', ');
 
+  function handleDragStart(e: React.DragEvent) {
+    e.stopPropagation();
+    e.dataTransfer.setData('entryId', entry.id);
+    e.dataTransfer.setData('entryDuration', '1');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
   return (
     <div
       className="time-grid__strip"
-      style={{ borderLeftColor: color }}
+      style={{
+        borderLeftColor: color,
+        // min-width: show up to 3 side-by-side; after 3 the slot scrolls
+        minWidth: count > 3 ? '33%' : `${100 / count}%`,
+        flex: count <= 3 ? '1' : '0 0 33%',
+      }}
+      draggable
+      onDragStart={handleDragStart}
       onClick={e => { e.stopPropagation(); onClick(entry); }}
       title={`${entry.description}${names ? ` — ${names}` : ''}`}
     >
@@ -58,11 +101,13 @@ export function TimeGrid({
   onSlotClick,
   onEntryClick,
   onTodoDrop,
+  onEntryDrop,
 }: TimeGridProps) {
   const [hoveredSlot, setHoveredSlot]   = useState<{ date: string; hour: number } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<{ date: string; hour: number } | null>(null);
 
-  const firstHour = hourSlots[0];
+  const firstHour   = hourSlots[0];
+  const acceptsDrop = !!(onTodoDrop || onEntryDrop);
 
   const entriesByDate = useMemo(() => {
     const map = new Map<string, TimeEntry[]>();
@@ -75,6 +120,15 @@ export function TimeGrid({
   }, [entries]);
 
   const totalHeight = hourSlots.length * SLOT_HEIGHT_PX;
+
+  function handleDrop(e: React.DragEvent, dateStr: string, hour: number) {
+    e.preventDefault();
+    setDragOverSlot(null);
+    const todoId  = e.dataTransfer.getData('todoId');
+    const entryId = e.dataTransfer.getData('entryId');
+    if (todoId  && onTodoDrop)  onTodoDrop(todoId, dateStr, hour);
+    if (entryId && onEntryDrop) onEntryDrop(entryId, dateStr, hour);
+  }
 
   return (
     <div className="time-grid">
@@ -99,7 +153,7 @@ export function TimeGrid({
       </div>
 
       {/* Scrollable body */}
-      <div className="time-grid__body" style={{ height: `${totalHeight}px` }}>
+      <div className="time-grid__body">
         {/* Time gutter */}
         <div className="time-grid__time-gutter">
           {hourSlots.map(hour => (
@@ -115,6 +169,7 @@ export function TimeGrid({
           const dayEntries = entriesByDate.get(dateStr) ?? [];
           const weekend    = isWeekend(day);
 
+          // Separate single-hour (go into slot rows) from multi-hour (absolutely positioned)
           const singleHour = new Map<number, TimeEntry[]>();
           const multiHour: TimeEntry[] = [];
 
@@ -128,17 +183,21 @@ export function TimeGrid({
             }
           }
 
+          // Column layout for overlapping multi-hour blocks
+          const columnLayout = assignColumnLayout(multiHour);
+
           return (
             <div
               key={dateStr}
               className={`time-grid__day-col${weekend ? ' time-grid__day-col--weekend' : ''}`}
               style={{ height: `${totalHeight}px` }}
             >
-              {/* Slot rows */}
+              {/* Slot rows (single-hour entries side-by-side) */}
               {hourSlots.map(hour => {
-                const strips      = singleHour.get(hour) ?? [];
-                const isHovered   = hoveredSlot?.date === dateStr && hoveredSlot?.hour === hour;
-                const isDragOver  = dragOverSlot?.date === dateStr && dragOverSlot?.hour === hour;
+                const strips     = singleHour.get(hour) ?? [];
+                const count      = strips.length;
+                const isHovered  = hoveredSlot?.date === dateStr && hoveredSlot?.hour === hour;
+                const isDragOver = dragOverSlot?.date === dateStr && dragOverSlot?.hour === hour;
 
                 return (
                   <div
@@ -147,20 +206,17 @@ export function TimeGrid({
                       'time-grid__slot',
                       isHovered  ? 'time-grid__slot--hovered'   : '',
                       isDragOver ? 'time-grid__slot--drag-over' : '',
+                      count > 0  ? 'time-grid__slot--has-entries' : '',
                     ].join(' ').trim()}
                     style={{ height: `${SLOT_HEIGHT_PX}px` }}
                     onMouseEnter={() => setHoveredSlot({ date: dateStr, hour })}
                     onMouseLeave={() => setHoveredSlot(null)}
                     onClick={() => onSlotClick(dateStr, hour)}
-                    onDragOver={onTodoDrop ? e => { e.preventDefault(); setDragOverSlot({ date: dateStr, hour }); } : undefined}
-                    onDragLeave={onTodoDrop ? () => setDragOverSlot(null) : undefined}
-                    onDrop={onTodoDrop ? e => {
-                      e.preventDefault();
-                      setDragOverSlot(null);
-                      const todoId = e.dataTransfer.getData('todoId');
-                      if (todoId) onTodoDrop(todoId, dateStr, hour);
-                    } : undefined}
+                    onDragOver={acceptsDrop ? e => { e.preventDefault(); setDragOverSlot({ date: dateStr, hour }); } : undefined}
+                    onDragLeave={acceptsDrop ? () => setDragOverSlot(null) : undefined}
+                    onDrop={acceptsDrop ? e => handleDrop(e, dateStr, hour) : undefined}
                   >
+                    {/* "+" add button — always on top via z-index */}
                     {isHovered && !isDragOver && (
                       <button
                         className="time-grid__slot-add-btn"
@@ -171,30 +227,40 @@ export function TimeGrid({
                         +
                       </button>
                     )}
-                    {strips.map(entry => (
-                      <SlotStrip
-                        key={entry.id}
-                        entry={entry}
-                        projects={projects}
-                        categories={categories}
-                        onClick={onEntryClick}
-                      />
-                    ))}
+
+                    {/* Side-by-side strips in scrollable inner row */}
+                    <div className="time-grid__slot-strips">
+                      {strips.map(entry => (
+                        <SlotStrip
+                          key={entry.id}
+                          entry={entry}
+                          count={count}
+                          projects={projects}
+                          categories={categories}
+                          onClick={onEntryClick}
+                        />
+                      ))}
+                    </div>
                   </div>
                 );
               })}
 
-              {/* Multi-hour blocks */}
-              {multiHour.map(entry => (
-                <TimeEntryBlock
-                  key={entry.id}
-                  entry={entry}
-                  firstHour={firstHour}
-                  projects={projects}
-                  categories={categories}
-                  onClick={onEntryClick}
-                />
-              ))}
+              {/* Multi-hour blocks — absolutely positioned, tiled by column */}
+              {multiHour.map(entry => {
+                const { col, totalCols } = columnLayout.get(entry.id) ?? { col: 0, totalCols: 1 };
+                return (
+                  <TimeEntryBlock
+                    key={entry.id}
+                    entry={entry}
+                    firstHour={firstHour}
+                    column={col}
+                    totalColumns={totalCols}
+                    projects={projects}
+                    categories={categories}
+                    onClick={onEntryClick}
+                  />
+                );
+              })}
             </div>
           );
         })}
