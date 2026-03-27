@@ -33,10 +33,19 @@ export function useTodos() {
     setTodos(next);
   }
 
+  function duplicateTodo(id: string): void {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    const copy: TodoItem = { ...todo, id: generateId(), createdAt: new Date().toISOString() };
+    const next = [...todos, copy];
+    setTodosState(next);
+    setTodos(next);
+  }
+
   function clearAllTodos(): void {
     setTodosState([]);
     setTodos([]);
   }
 
-  return { todos, addTodo, updateTodo, deleteTodo, clearAllTodos };
+  return { todos, addTodo, updateTodo, deleteTodo, duplicateTodo, clearAllTodos };
 }

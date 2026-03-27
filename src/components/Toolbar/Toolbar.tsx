@@ -12,6 +12,7 @@ interface ToolbarProps {
   onNext: () => void;
   onToday: () => void;
   onAddProjectsClick: () => void;
+  onAddTaskClick: () => void;
   onAnalyticsClick: () => void;
   onExportClick: () => void;
   onToggleTheme: () => void;
@@ -41,6 +42,7 @@ export function Toolbar({
   onNext,
   onToday,
   onAddProjectsClick,
+  onAddTaskClick,
   onAnalyticsClick,
   onExportClick,
   onToggleTheme,
@@ -106,6 +108,9 @@ export function Toolbar({
         </button>
         <button className="toolbar__btn" onClick={onExportClick}>
           Export
+        </button>
+        <button className="toolbar__btn toolbar__btn--add-task" onClick={onAddTaskClick}>
+          + Task
         </button>
         <button className="toolbar__btn toolbar__btn--add-projects" onClick={onAddProjectsClick}>
           + Projects

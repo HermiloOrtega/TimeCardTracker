@@ -80,6 +80,17 @@
   background: var(--color-accent-hover);
 }
 
+.toolbar__btn--add-task {
+  background: #34a853;
+  color: #fff;
+  border-color: #34a853;
+  font-weight: 500;
+}
+
+.toolbar__btn--add-task:hover {
+  background: #2d9249;
+}
+
 .toolbar__btn--add-projects {
   background: var(--color-accent);
   color: #fff;

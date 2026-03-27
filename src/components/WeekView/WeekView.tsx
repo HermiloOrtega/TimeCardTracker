@@ -10,9 +10,10 @@ interface WeekViewProps {
   onSlotClick: (date: string, hour: number) => void;
   onEntryClick: (entry: TimeEntry) => void;
   onTodoDrop?: (todoId: string, date: string, hour: number) => void;
+  onEntryDrop?: (entryId: string, date: string, hour: number) => void;
 }
 
-export function WeekView({ days, hourSlots, entries, projects, categories, onSlotClick, onEntryClick, onTodoDrop }: WeekViewProps) {
+export function WeekView({ days, hourSlots, entries, projects, categories, onSlotClick, onEntryClick, onTodoDrop, onEntryDrop }: WeekViewProps) {
   return (
     <TimeGrid
       days={days}
@@ -23,6 +24,7 @@ export function WeekView({ days, hourSlots, entries, projects, categories, onSlo
       onSlotClick={onSlotClick}
       onEntryClick={onEntryClick}
       onTodoDrop={onTodoDrop}
+      onEntryDrop={onEntryDrop}
     />
   );
 }

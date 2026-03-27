@@ -73,8 +73,10 @@
 /* ── Body ── */
 .time-grid__body {
   display: flex;
+  flex: 1;
   overflow-y: auto;
   position: relative;
+  min-height: 0;
 }
 
 .time-grid__body .time-grid__time-gutter {
@@ -111,13 +113,23 @@
   box-sizing: border-box;
   border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   padding: 1px 2px;
   transition: background 0.1s;
+}
+
+/* Inner scrollable row for strips — lets the "+" button float above */
+.time-grid__slot-strips {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 1px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  min-width: 0;
 }
 
 .time-grid__slot--hovered {
@@ -147,9 +159,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3;
+  z-index: 10;
   padding: 0;
   font-weight: 300;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
 }
 
 .time-grid__slot-add-btn:hover {
@@ -158,19 +171,22 @@
 
 /* ── Single-hour strips ── */
 .time-grid__strip {
-  height: 20px;
+  height: 100%;
   flex-shrink: 0;
+  border-left: 3px solid transparent;
+  border: 1px solid var(--color-border);
   border-left: 3px solid transparent;
   border-radius: 2px;
   background: var(--color-hover);
   display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 4px 0 5px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 4px 2px 5px;
   font-size: 11px;
   cursor: pointer;
   overflow: hidden;
-  margin-bottom: 1px;
+  box-sizing: border-box;
 }
 
 .time-grid__strip:hover {
