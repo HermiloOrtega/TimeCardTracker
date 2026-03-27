@@ -9,6 +9,14 @@
   flex: 1;
   overflow: hidden;
   display: flex;
+  flex-direction: row;  /* sidebar + main side by side */
+}
+
+.calendar-shell__main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
   flex-direction: column;
   padding: 12px;
+  min-width: 0;
 }

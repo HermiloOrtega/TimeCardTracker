@@ -5,13 +5,14 @@ import './TimeEntryBlock.css';
 
 interface TimeEntryBlockProps {
   entry: TimeEntry;
+  firstHour: number;
   projects: Project[];
   categories: CategoryDef[];
   onClick: (entry: TimeEntry) => void;
 }
 
-export function TimeEntryBlock({ entry, projects, categories, onClick }: TimeEntryBlockProps) {
-  const top    = (entry.startHour - 7) * SLOT_HEIGHT_PX;
+export function TimeEntryBlock({ entry, firstHour, projects, categories, onClick }: TimeEntryBlockProps) {
+  const top    = (entry.startHour - firstHour) * SLOT_HEIGHT_PX;
   const height = (entry.endHour - entry.startHour) * SLOT_HEIGHT_PX;
   const color  = deriveBlockColor(entry.projectIds, projects, categories);
 

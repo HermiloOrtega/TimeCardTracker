@@ -1,7 +1,24 @@
-// Hours displayed in the grid: 8am (slot start) through 6pm (last slot starts at 18, ends at 19)
-export const HOUR_SLOTS: number[] = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+import type { TimeRange } from '../models/types';
+
+/** Legacy constant kept for any import that still references it. Represents "extended" range. */
+export const HOUR_SLOTS: number[] = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
 
 export const SLOT_HEIGHT_PX = 60;
+
+/**
+ * Returns the array of hour slot start-values for the given time range.
+ *  work     → 9 am – 5 pm  (slots 9–16, last slot 4–5 pm)
+ *  extended → 8 am – 6 pm  (slots 8–17, last slot 5–6 pm)  ← default
+ *  full     → 6 am – 10 pm (slots 6–21, last slot 9–10 pm)
+ */
+export function getHourSlots(range: TimeRange): number[] {
+  switch (range) {
+    case 'work':     return [9, 10, 11, 12, 13, 14, 15, 16];
+    case 'full':     return [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+    case 'extended':
+    default:         return [8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+  }
+}
 
 export function toDateString(d: Date): string {
   const y = d.getFullYear();
@@ -37,8 +54,9 @@ export function getWeekDays(anchor: Date, includeWeekends: boolean): Date[] {
 }
 
 export function formatHour(hour: number): string {
+  if (hour === 0)  return '12am';
   if (hour === 12) return '12pm';
-  if (hour > 12) return `${hour - 12}pm`;
+  if (hour > 12)  return `${hour - 12}pm`;
   return `${hour}am`;
 }
 
