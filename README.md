@@ -10,8 +10,11 @@ TimeCardTracker is a personal time tracking tool built with React and TypeScript
 
 - Log work hours on a visual calendar grid (daily or weekly views)
 - Organize time entries by **project** and **category**, each with a custom color
+- Plan upcoming work with a **To-Do sidebar** and drag tasks directly onto the calendar
 - Analyze your time with built-in charts and timelines
 - Export your time log to **Excel (.xlsx)** for reporting or invoicing
+- Switch between **light and dark mode**, saved automatically
+- Choose the **time slot range** that fits your day (Work Hours, Extended, or Full Day)
 
 All data is stored in **browser localStorage** — nothing is sent to any server.
 
@@ -25,7 +28,7 @@ All data is stored in **browser localStorage** — nothing is sent to any server
 | Build Tool | Vite |
 | Persistence | Browser localStorage |
 | Export | XLSX (Excel files) |
-| Styling | CSS with custom properties |
+| Styling | CSS with custom properties (light + dark themes) |
 
 ---
 
@@ -55,6 +58,8 @@ npm run dev
 
 Open your browser at `http://localhost:5173`.
 
+> The app is also accessible from other devices on your local network via your machine's IP address (e.g., `http://192.168.x.x:5173`).
+
 ### Building for Production
 
 ```bash
@@ -75,7 +80,7 @@ npm run preview
 
 Before logging time, create your **categories** and **projects**:
 
-1. Click the **Projects** button in the toolbar.
+1. Click the **+ Projects** button in the toolbar.
 2. Add a **Category** (e.g., "Client Work", "Internal") and pick a color.
 3. Add a **Project** under that category (e.g., "Website Redesign").
 
@@ -89,7 +94,7 @@ Categories are color-coded — their color carries through to all entries in tha
 
 **Click any hour slot** on the calendar to open the entry form:
 
-- Select the **date**, **start time**, and **end time** (7am–7pm range)
+- Select the **date**, **start time**, and **end time**
 - Add a **description** of the work
 - Assign one or more **projects**
 - Save
@@ -119,7 +124,41 @@ The current day is highlighted. Weekends are visually distinguished in week view
 
 ---
 
-### 5. Analytics
+### 5. To-Do Sidebar
+
+The **To-Do panel** on the left side of the screen is a bucket list for tasks you plan to work on.
+
+**Adding tasks:**
+- Type a task title in the input field and press **Enter** or click **+**
+- Click **≡** to expand an optional note field before adding
+
+**Managing tasks:**
+- Click **✏️** to edit a task's title or note inline
+- Click **🗑** to delete a single task
+- Click **Clear all** (appears in the header when tasks exist) to wipe the entire list — confirms before deleting
+
+---
+
+### 6. Drag Tasks from To-Do to Calendar
+
+Tasks in the To-Do sidebar can be **dragged and dropped** directly onto any calendar time slot.
+
+1. Grab a task by its drag handle (**⠿**) or anywhere on the card
+2. Drop it onto the target hour slot on the calendar
+3. A **confirmation dialog** appears — review or adjust:
+   - Description (pre-filled from the task title)
+   - Start and end time
+   - Optional project assignment
+4. Click **Add to Calendar** to create the time entry
+
+> The task is automatically **removed from the To-Do list** once confirmed.
+> Clicking **Cancel** leaves both the task and the calendar slot unchanged.
+
+You can still **click any slot directly** to add entries without using the To-Do list.
+
+---
+
+### 7. Analytics
 
 Click the **Analytics** button to open the analytics panel:
 
@@ -129,7 +168,7 @@ Click the **Analytics** button to open the analytics panel:
 
 ---
 
-### 6. Export to Excel
+### 8. Export to Excel
 
 Click the **Export** button:
 
@@ -143,6 +182,26 @@ Filename format: `timecard-YYYY-MM-DD-to-YYYY-MM-DD.xlsx`
 
 ---
 
+## Appearance & Display Settings
+
+All preferences are saved automatically and restored on your next visit.
+
+### Light / Dark Mode
+
+Click the **🌙 / ☀️** button in the toolbar (top right) to toggle between light and dark mode.
+
+### Time Slot Range
+
+Use the **dropdown in the toolbar** to control which hours are shown in the calendar grid:
+
+| Option | Hours Displayed |
+|---|---|
+| Work Hours (9–5) | 9 am to 5 pm |
+| **Extended (8–6)** ← default | 8 am to 6 pm |
+| Full Day (6am–10pm) | 6 am to 10 pm |
+
+---
+
 ## Calendar Views
 
 | View | Description |
@@ -150,8 +209,6 @@ Filename format: `timecard-YYYY-MM-DD-to-YYYY-MM-DD.xlsx`
 | **Work Week** (default) | Monday through Friday |
 | **Full Week** | Monday through Sunday |
 | **Daily** | Single day, full focus |
-
-Time grid shows hours from **8am to 6pm**.
 
 ---
 
@@ -164,8 +221,10 @@ All data is stored in `localStorage` under these keys:
 | `tct_entries` | All time entries |
 | `tct_projects` | All projects |
 | `tct_categories` | All categories |
+| `tct_todos` | To-Do task list |
+| `tct_settings` | Theme and time range preferences |
 
-**Clearing browser data will erase all entries.** Export to Excel regularly if you need a backup.
+**Clearing browser data will erase everything.** Export to Excel regularly if you need a backup.
 
 ---
 
@@ -173,18 +232,23 @@ All data is stored in `localStorage` under these keys:
 
 ```
 src/
-├── models/           # TypeScript types (TimeEntry, Project, CategoryDef)
-├── services/         # localStorage read/write + data migration
-├── hooks/            # useTimeEntries, useProjects, useCategories
-├── utils/            # Date helpers, color utilities, UUID generation
+├── models/              # TypeScript types (TimeEntry, Project, CategoryDef, TodoItem, AppSettings)
+├── services/            # localStorage read/write + data migration
+├── hooks/               # useTimeEntries, useProjects, useCategories, useSettings, useTodos
+├── utils/               # Date helpers, color utilities, UUID generation
 └── components/
-    ├── Calendar/     # Main shell and state orchestration
-    ├── TimeGrid/     # Visual hour grid
-    ├── Toolbar/      # Navigation and view controls
-    ├── EntryModal/   # Add/edit time entry
-    ├── ProjectModal/ # Manage projects and categories
-    ├── ExportModal/  # Excel export with date range picker
-    └── Analytics/    # Bar chart and timeline views
+    ├── Calendar/         # Main shell — layout, state, drag-drop orchestration
+    ├── TimeGrid/         # Visual hour grid with drag-over support
+    ├── Toolbar/          # Navigation, view controls, theme toggle, time range selector
+    ├── TodoSidebar/      # To-Do panel with add, edit, delete, clear all, drag
+    ├── ConfirmDropModal/ # Confirmation dialog when dropping a task onto the calendar
+    ├── EntryModal/       # Add/edit time entry
+    ├── ProjectModal/     # Manage projects and categories
+    ├── ExportModal/      # Excel export with date range picker
+    ├── TimeEntryBlock/   # Absolutely-positioned multi-hour entry blocks
+    ├── WeekView/         # Week view wrapper
+    ├── DailyView/        # Daily view wrapper
+    └── Analytics/        # Bar chart and timeline views
 ```
 
 ---
@@ -195,6 +259,7 @@ src/
 - **Project** — Belongs to a category (e.g., "Website Redesign" under "Client Work")
 - **Time Entry** — A logged block of time: date + start/end hour + description + project(s)
 - **Multi-project entries** — An entry can belong to multiple projects; it displays in a mixed/neutral color
+- **To-Do** — A task list used for planning; tasks can be dragged to the calendar to schedule them
 
 ---
 
@@ -203,7 +268,7 @@ src/
 - **No sync** — data lives only in your browser. Use export for backups.
 - **Single user** — no multi-user or sharing support.
 - **Hour granularity** — entries are tracked in whole hours (no minute-level precision).
-- **Time range** — the grid displays 8am–6pm; entries can be entered from 7am–7pm.
+- **Network IP access** — opening the app via a local network IP works, but each browser origin stores its own localStorage; data entered on one device is not visible on another.
 
 ---
 

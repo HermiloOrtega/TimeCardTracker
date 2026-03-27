@@ -1,10 +1,12 @@
-import type { ViewMode } from '../../models/types';
+import type { ViewMode, Theme, TimeRange } from '../../models/types';
 import './Toolbar.css';
 
 interface ToolbarProps {
   viewMode: ViewMode;
   dateRangeLabel: string;
   isAnalyticsActive: boolean;
+  theme: Theme;
+  timeRange: TimeRange;
   onViewChange: (mode: ViewMode) => void;
   onPrev: () => void;
   onNext: () => void;
@@ -12,6 +14,8 @@ interface ToolbarProps {
   onAddProjectsClick: () => void;
   onAnalyticsClick: () => void;
   onExportClick: () => void;
+  onToggleTheme: () => void;
+  onTimeRangeChange: (range: TimeRange) => void;
 }
 
 const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
@@ -20,10 +24,18 @@ const VIEW_OPTIONS: { mode: ViewMode; label: string }[] = [
   { mode: 'daily',                 label: 'Day' },
 ];
 
+const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
+  { value: 'work',     label: 'Work Hours (9–5)' },
+  { value: 'extended', label: 'Extended (8–6)' },
+  { value: 'full',     label: 'Full Day (6am–10pm)' },
+];
+
 export function Toolbar({
   viewMode,
   dateRangeLabel,
   isAnalyticsActive,
+  theme,
+  timeRange,
   onViewChange,
   onPrev,
   onNext,
@@ -31,6 +43,8 @@ export function Toolbar({
   onAddProjectsClick,
   onAnalyticsClick,
   onExportClick,
+  onToggleTheme,
+  onTimeRangeChange,
 }: ToolbarProps) {
   return (
     <div className="toolbar">
@@ -59,6 +73,31 @@ export function Toolbar({
       </div>
 
       <div className="toolbar__right">
+        {/* Time range selector */}
+        {!isAnalyticsActive && (
+          <select
+            className="toolbar__select"
+            value={timeRange}
+            onChange={e => onTimeRangeChange(e.target.value as TimeRange)}
+            title="Time slot range"
+            aria-label="Time slot range"
+          >
+            {TIME_RANGE_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        )}
+
+        {/* Theme toggle */}
+        <button
+          className="toolbar__btn toolbar__btn--icon toolbar__theme-btn"
+          onClick={onToggleTheme}
+          aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          title={theme === 'light' ? 'Dark mode' : 'Light mode'}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
+
         <button
           className={`toolbar__btn${isAnalyticsActive ? ' toolbar__btn--active' : ''}`}
           onClick={onAnalyticsClick}
@@ -69,7 +108,7 @@ export function Toolbar({
           Export
         </button>
         <button className="toolbar__btn toolbar__btn--add-projects" onClick={onAddProjectsClick}>
-          + Add Projects
+          + Projects
         </button>
       </div>
     </div>

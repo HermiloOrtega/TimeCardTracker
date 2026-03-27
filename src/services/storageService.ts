@@ -1,8 +1,47 @@
-import type { Project, TimeEntry, CategoryDef } from '../models/types';
+import type { Project, TimeEntry, CategoryDef, TodoItem, AppSettings } from '../models/types';
 
 const PROJECTS_KEY   = 'tct_projects';
 const ENTRIES_KEY    = 'tct_entries';
 const CATEGORIES_KEY = 'tct_categories';
+const TODOS_KEY      = 'tct_todos';
+const SETTINGS_KEY   = 'tct_settings';
+
+const DEFAULT_SETTINGS: AppSettings = {
+  theme: 'light',
+  timeRange: 'extended',
+};
+
+// ─── Settings ─────────────────────────────────────────────────────
+
+export function getSettings(): AppSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } as AppSettings;
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+export function setSettings(settings: AppSettings): void {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+// ─── Todos ────────────────────────────────────────────────────────
+
+export function getTodos(): TodoItem[] {
+  try {
+    const raw = localStorage.getItem(TODOS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as TodoItem[];
+  } catch {
+    return [];
+  }
+}
+
+export function setTodos(todos: TodoItem[]): void {
+  localStorage.setItem(TODOS_KEY, JSON.stringify(todos));
+}
 
 // ─── Categories ───────────────────────────────────────────────────
 
@@ -68,7 +107,6 @@ export function migrateIfNeeded(): void {
 
   const raw = localStorage.getItem(PROJECTS_KEY);
   if (!raw) {
-    // Fresh install — nothing to migrate; categories start empty
     return;
   }
 
@@ -81,18 +119,15 @@ export function migrateIfNeeded(): void {
 
   const hasLegacy = projects.some(p => 'category' in p);
   if (!hasLegacy) {
-    // Projects already have categoryId — just initialise categories key
     setCategories(getCategories());
     return;
   }
 
-  // Determine which legacy categories are actually used
   const usedKeys = new Set(projects.map(p => p.category ?? '').filter(Boolean));
   const seededCats: CategoryDef[] = [...usedKeys]
     .filter(k => k in LEGACY_SEED)
     .map(k => LEGACY_SEED[k]);
 
-  // Remap projects
   const migrated: Project[] = projects.map(p => {
     const { category, ...rest } = p as Project & { category?: string };
     const cat = LEGACY_SEED[category ?? ''];

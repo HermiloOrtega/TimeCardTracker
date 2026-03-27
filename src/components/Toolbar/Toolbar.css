@@ -6,6 +6,7 @@
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .toolbar__left,
@@ -31,7 +32,8 @@
   color: var(--color-text-primary);
   font-size: 13px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 
 .toolbar__btn:hover {
@@ -44,9 +46,14 @@
 }
 
 .toolbar__btn--icon {
-  font-size: 20px;
+  font-size: 18px;
   padding: 4px 10px;
   line-height: 1;
+}
+
+.toolbar__theme-btn {
+  font-size: 16px;
+  padding: 5px 9px;
 }
 
 .toolbar__view-btn {
@@ -82,4 +89,26 @@
 
 .toolbar__btn--add-projects:hover {
   background: var(--color-accent-hover);
+}
+
+/* ─── Time range select ──────────────────────────────────────────── */
+.toolbar__select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.toolbar__select:hover {
+  border-color: var(--color-accent);
+}
+
+.toolbar__select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
 }

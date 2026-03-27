@@ -1,26 +1,25 @@
 import { useMemo, useState } from 'react';
 import type { TimeEntry, Project, CategoryDef } from '../../models/types';
 import {
-  HOUR_SLOTS,
   SLOT_HEIGHT_PX,
   toDateString,
   formatHour,
   formatDayHeader,
   isWeekend,
 } from '../../utils/dateUtils';
-import { deriveBlockColor, getCategoryColor } from '../../utils/colorUtils';
+import { deriveBlockColor } from '../../utils/colorUtils';
 import { TimeEntryBlock } from '../TimeEntryBlock/TimeEntryBlock';
 import './TimeGrid.css';
 
-const STRIP_HEIGHT_PX = 20;
-
 interface TimeGridProps {
   days: Date[];
+  hourSlots: number[];
   entries: TimeEntry[];
   projects: Project[];
   categories: CategoryDef[];
   onSlotClick: (date: string, hour: number) => void;
   onEntryClick: (entry: TimeEntry) => void;
+  onTodoDrop?: (todoId: string, date: string, hour: number) => void;
 }
 
 interface SlotStripProps {
@@ -52,15 +51,19 @@ function SlotStrip({ entry, projects, categories, onClick }: SlotStripProps) {
 
 export function TimeGrid({
   days,
+  hourSlots,
   entries,
   projects,
   categories,
   onSlotClick,
   onEntryClick,
+  onTodoDrop,
 }: TimeGridProps) {
-  const [hoveredSlot, setHoveredSlot] = useState<{ date: string; hour: number } | null>(null);
+  const [hoveredSlot, setHoveredSlot]   = useState<{ date: string; hour: number } | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<{ date: string; hour: number } | null>(null);
 
-  // Pre-sort entries by date
+  const firstHour = hourSlots[0];
+
   const entriesByDate = useMemo(() => {
     const map = new Map<string, TimeEntry[]>();
     for (const entry of entries) {
@@ -71,7 +74,7 @@ export function TimeGrid({
     return map;
   }, [entries]);
 
-  const totalHeight = HOUR_SLOTS.length * SLOT_HEIGHT_PX;
+  const totalHeight = hourSlots.length * SLOT_HEIGHT_PX;
 
   return (
     <div className="time-grid">
@@ -99,7 +102,7 @@ export function TimeGrid({
       <div className="time-grid__body" style={{ height: `${totalHeight}px` }}>
         {/* Time gutter */}
         <div className="time-grid__time-gutter">
-          {HOUR_SLOTS.map(hour => (
+          {hourSlots.map(hour => (
             <div key={hour} className="time-grid__time-label" style={{ height: `${SLOT_HEIGHT_PX}px` }}>
               {formatHour(hour)}
             </div>
@@ -108,11 +111,10 @@ export function TimeGrid({
 
         {/* Day columns */}
         {days.map(day => {
-          const dateStr   = toDateString(day);
+          const dateStr    = toDateString(day);
           const dayEntries = entriesByDate.get(dateStr) ?? [];
-          const weekend   = isWeekend(day);
+          const weekend    = isWeekend(day);
 
-          // Split into single-hour vs multi-hour
           const singleHour = new Map<number, TimeEntry[]>();
           const multiHour: TimeEntry[] = [];
 
@@ -132,21 +134,34 @@ export function TimeGrid({
               className={`time-grid__day-col${weekend ? ' time-grid__day-col--weekend' : ''}`}
               style={{ height: `${totalHeight}px` }}
             >
-              {/* Slot rows (single-hour entries + hover) */}
-              {HOUR_SLOTS.map(hour => {
-                const strips     = singleHour.get(hour) ?? [];
-                const isHovered  = hoveredSlot?.date === dateStr && hoveredSlot?.hour === hour;
+              {/* Slot rows */}
+              {hourSlots.map(hour => {
+                const strips      = singleHour.get(hour) ?? [];
+                const isHovered   = hoveredSlot?.date === dateStr && hoveredSlot?.hour === hour;
+                const isDragOver  = dragOverSlot?.date === dateStr && dragOverSlot?.hour === hour;
 
                 return (
                   <div
                     key={hour}
-                    className={`time-grid__slot${isHovered ? ' time-grid__slot--hovered' : ''}`}
+                    className={[
+                      'time-grid__slot',
+                      isHovered  ? 'time-grid__slot--hovered'   : '',
+                      isDragOver ? 'time-grid__slot--drag-over' : '',
+                    ].join(' ').trim()}
                     style={{ height: `${SLOT_HEIGHT_PX}px` }}
                     onMouseEnter={() => setHoveredSlot({ date: dateStr, hour })}
                     onMouseLeave={() => setHoveredSlot(null)}
                     onClick={() => onSlotClick(dateStr, hour)}
+                    onDragOver={onTodoDrop ? e => { e.preventDefault(); setDragOverSlot({ date: dateStr, hour }); } : undefined}
+                    onDragLeave={onTodoDrop ? () => setDragOverSlot(null) : undefined}
+                    onDrop={onTodoDrop ? e => {
+                      e.preventDefault();
+                      setDragOverSlot(null);
+                      const todoId = e.dataTransfer.getData('todoId');
+                      if (todoId) onTodoDrop(todoId, dateStr, hour);
+                    } : undefined}
                   >
-                    {isHovered && (
+                    {isHovered && !isDragOver && (
                       <button
                         className="time-grid__slot-add-btn"
                         onClick={e => { e.stopPropagation(); onSlotClick(dateStr, hour); }}
@@ -169,11 +184,12 @@ export function TimeGrid({
                 );
               })}
 
-              {/* Multi-hour blocks (absolute positioned) */}
+              {/* Multi-hour blocks */}
               {multiHour.map(entry => (
                 <TimeEntryBlock
                   key={entry.id}
                   entry={entry}
+                  firstHour={firstHour}
                   projects={projects}
                   categories={categories}
                   onClick={onEntryClick}
