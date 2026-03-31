@@ -3,12 +3,8 @@ import { useTimeEntries } from './hooks/useTimeEntries';
 import { useCategories } from './hooks/useCategories';
 import { useSettings } from './hooks/useSettings';
 import { useTodos } from './hooks/useTodos';
-import { migrateIfNeeded } from './services/storageService';
 import { CalendarShell } from './components/Calendar/CalendarShell';
 import './App.css';
-
-// Run migration once before any hooks initialise state
-migrateIfNeeded();
 
 export default function App() {
   const { categories, addCategory, deleteCategory }                          = useCategories();

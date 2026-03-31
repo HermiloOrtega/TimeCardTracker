@@ -1,11 +1,16 @@
 node_modules/
 dist/
 dist-ssr/
-.env
-.env.*
-*.local
 .DS_Store
 *.log
+
+# Environment files — never commit real credentials
+.env
+.env.local
+# .env.production is a template with placeholder values — safe to commit
+
+# Personal seed data — excluded from repo
+docs/seed_data.sql
 
 # Claude Code local config — never commit
 .claude/

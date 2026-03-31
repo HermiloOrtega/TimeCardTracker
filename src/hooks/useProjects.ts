@@ -1,21 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Project } from '../models/types';
-import { getProjects, setProjects } from '../services/storageService';
 import { generateId } from '../utils/uuidUtils';
+import { apiGetProjects, apiAddProject, apiDeleteProject } from '../services/apiService';
 
 export function useProjects() {
-  const [projects, setProjectsState] = useState<Project[]>(() => getProjects());
+  const [projects, setProjectsState] = useState<Project[]>([]);
 
-  function addProject(name: string, categoryId: string): void {
-    const next: Project[] = [...projects, { id: generateId(), name: name.trim(), categoryId }];
-    setProjectsState(next);
-    setProjects(next);
+  useEffect(() => {
+    apiGetProjects().then(setProjectsState).catch(console.error);
+  }, []);
+
+  async function addProject(name: string, categoryId: string): Promise<void> {
+    const p: Project = { id: generateId(), name: name.trim(), categoryId };
+    await apiAddProject(p);
+    setProjectsState(prev => [...prev, p]);
   }
 
-  function deleteProject(id: string): void {
-    const next = projects.filter(p => p.id !== id);
-    setProjectsState(next);
-    setProjects(next);
+  async function deleteProject(id: string): Promise<void> {
+    await apiDeleteProject(id);
+    setProjectsState(prev => prev.filter(p => p.id !== id));
   }
 
   return { projects, addProject, deleteProject };

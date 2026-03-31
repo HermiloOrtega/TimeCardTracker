@@ -1,25 +1,30 @@
 import { useState, useEffect } from 'react';
 import type { AppSettings, Theme, TimeRange } from '../models/types';
-import { getSettings, setSettings } from '../services/storageService';
+import { apiGetSettings, apiSaveSettings } from '../services/apiService';
+
+const DEFAULT_SETTINGS: AppSettings = { theme: 'light', timeRange: 'extended' };
 
 export function useSettings() {
-  const [settings, setSettingsState] = useState<AppSettings>(() => getSettings());
+  const [settings, setSettingsState] = useState<AppSettings>(DEFAULT_SETTINGS);
 
-  // Apply theme to document root whenever it changes
+  useEffect(() => {
+    apiGetSettings().then(setSettingsState).catch(console.error);
+  }, []);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings.theme]);
 
-  function setTheme(theme: Theme): void {
+  async function setTheme(theme: Theme): Promise<void> {
     const next = { ...settings, theme };
     setSettingsState(next);
-    setSettings(next);
+    await apiSaveSettings(next);
   }
 
-  function setTimeRange(timeRange: TimeRange): void {
+  async function setTimeRange(timeRange: TimeRange): Promise<void> {
     const next = { ...settings, timeRange };
     setSettingsState(next);
-    setSettings(next);
+    await apiSaveSettings(next);
   }
 
   return { settings, setTheme, setTimeRange };

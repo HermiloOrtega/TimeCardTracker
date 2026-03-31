@@ -1,27 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { CategoryDef } from '../models/types';
-import { getCategories, setCategories } from '../services/storageService';
 import { generateId } from '../utils/uuidUtils';
+import { apiGetCategories, apiAddCategory, apiDeleteCategory } from '../services/apiService';
 
 export function useCategories() {
-  const [categories, setCategoriesState] = useState<CategoryDef[]>(() => getCategories());
+  const [categories, setCategoriesState] = useState<CategoryDef[]>([]);
 
-  function addCategory(name: string, color: string): void {
+  useEffect(() => {
+    apiGetCategories().then(setCategoriesState).catch(console.error);
+  }, []);
+
+  async function addCategory(name: string, color: string): Promise<void> {
     const trimmed = name.trim();
-    const isDuplicate = categories.some(
-      c => c.name.toLowerCase() === trimmed.toLowerCase()
-    );
+    const isDuplicate = categories.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
     if (!trimmed || isDuplicate) return;
-
-    const next: CategoryDef[] = [...categories, { id: generateId(), name: trimmed, color }];
-    setCategoriesState(next);
-    setCategories(next);
+    const cat: CategoryDef = { id: generateId(), name: trimmed, color };
+    await apiAddCategory(cat);
+    setCategoriesState(prev => [...prev, cat]);
   }
 
-  function deleteCategory(id: string): void {
-    const next = categories.filter(c => c.id !== id);
-    setCategoriesState(next);
-    setCategories(next);
+  async function deleteCategory(id: string): Promise<void> {
+    await apiDeleteCategory(id);
+    setCategoriesState(prev => prev.filter(c => c.id !== id));
   }
 
   return { categories, addCategory, deleteCategory };

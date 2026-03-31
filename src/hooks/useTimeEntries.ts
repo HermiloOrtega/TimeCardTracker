@@ -1,38 +1,43 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { TimeEntry } from '../models/types';
-import { getEntries, setEntries } from '../services/storageService';
 import { generateId } from '../utils/uuidUtils';
+import { apiGetEntries, apiAddEntry, apiUpdateEntry, apiDeleteEntry } from '../services/apiService';
 
 type EntryPayload = Omit<TimeEntry, 'id'>;
 
 export function useTimeEntries() {
-  const [entries, setEntriesState] = useState<TimeEntry[]>(() => getEntries());
+  const [entries, setEntriesState] = useState<TimeEntry[]>([]);
 
-  function addEntry(payload: EntryPayload): void {
-    const next: TimeEntry[] = [...entries, { ...payload, id: generateId() }];
-    setEntriesState(next);
-    setEntries(next);
+  useEffect(() => {
+    apiGetEntries().then(setEntriesState).catch(console.error);
+  }, []);
+
+  async function addEntry(payload: EntryPayload): Promise<void> {
+    const entry: TimeEntry = { ...payload, id: generateId() };
+    await apiAddEntry(entry);
+    setEntriesState(prev => [...prev, entry]);
   }
 
-  function updateEntry(id: string, payload: EntryPayload): void {
-    const next = entries.map(e => (e.id === id ? { ...payload, id } : e));
-    setEntriesState(next);
-    setEntries(next);
+  async function updateEntry(id: string, payload: EntryPayload): Promise<void> {
+    const entry: TimeEntry = { ...payload, id };
+    await apiUpdateEntry(entry);
+    setEntriesState(prev => prev.map(e => e.id === id ? entry : e));
   }
 
-  function deleteEntry(id: string): void {
-    const next = entries.filter(e => e.id !== id);
-    setEntriesState(next);
-    setEntries(next);
+  async function deleteEntry(id: string): Promise<void> {
+    await apiDeleteEntry(id);
+    setEntriesState(prev => prev.filter(e => e.id !== id));
   }
 
-  function scrubProjectId(projectId: string): void {
-    const next = entries.map(e => ({
+  async function scrubProjectId(projectId: string): Promise<void> {
+    const affected = entries.filter(e => e.projectIds.includes(projectId));
+    await Promise.all(affected.map(e =>
+      apiUpdateEntry({ ...e, projectIds: e.projectIds.filter(pid => pid !== projectId) })
+    ));
+    setEntriesState(prev => prev.map(e => ({
       ...e,
       projectIds: e.projectIds.filter(pid => pid !== projectId),
-    }));
-    setEntriesState(next);
-    setEntries(next);
+    })));
   }
 
   return { entries, addEntry, updateEntry, deleteEntry, scrubProjectId };
