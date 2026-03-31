@@ -24,7 +24,6 @@ export function ConfirmDropModal({
 }: ConfirmDropModalProps) {
   const [description, setDescription] = useState(todo.title);
   const [start, setStart]             = useState(startHour);
-  const [end, setEnd]                 = useState(startHour + 1);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
   const dateLabel = fromDateString(date).toLocaleDateString('en-US', {
@@ -41,11 +40,11 @@ export function ConfirmDropModal({
   }
 
   function handleConfirm() {
-    if (!description.trim() || end <= start) return;
+    if (!description.trim()) return;
     onConfirm({
       date,
       startHour: start,
-      endHour: end,
+      endHour: start + 1,
       description: description.trim(),
       projectIds: selectedProjects,
     });
@@ -72,36 +71,17 @@ export function ConfirmDropModal({
           />
         </div>
 
-        <div className="confirm-drop-modal__row">
-          <div className="confirm-drop-modal__field">
-            <label className="confirm-drop-modal__label">Start</label>
-            <select
-              className="confirm-drop-modal__select"
-              value={start}
-              onChange={e => {
-                const v = Number(e.target.value);
-                setStart(v);
-                if (end <= v) setEnd(v + 1);
-              }}
-            >
-              {hourOptions.map(h => (
-                <option key={h} value={h}>{formatHour(h)}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="confirm-drop-modal__field">
-            <label className="confirm-drop-modal__label">End</label>
-            <select
-              className="confirm-drop-modal__select"
-              value={end}
-              onChange={e => setEnd(Number(e.target.value))}
-            >
-              {hourOptions.filter(h => h > start).map(h => (
-                <option key={h} value={h}>{formatHour(h)}</option>
-              ))}
-            </select>
-          </div>
+        <div className="confirm-drop-modal__field">
+          <label className="confirm-drop-modal__label">Hour</label>
+          <select
+            className="confirm-drop-modal__select"
+            value={start}
+            onChange={e => setStart(Number(e.target.value))}
+          >
+            {hourOptions.map(h => (
+              <option key={h} value={h}>{formatHour(h)}</option>
+            ))}
+          </select>
         </div>
 
         {projects.length > 0 && (
@@ -135,7 +115,7 @@ export function ConfirmDropModal({
           <button
             className="confirm-drop-modal__confirm"
             onClick={handleConfirm}
-            disabled={!description.trim() || end <= start}
+            disabled={!description.trim()}
           >
             Add to Calendar
           </button>

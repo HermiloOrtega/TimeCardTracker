@@ -81,14 +81,16 @@ export function Timeline({ entries, projects, categories }: TimelineProps) {
               <div className="timeline__label-cell" title={proj.name}>{proj.name}</div>
               {dates.map(d => {
                 const hours = cellMap.get(`${proj.id}:${d}`) ?? 0;
-                const opacity = hours > 0 ? Math.min(0.3 + (hours / maxH) * 0.7, 1) : 0;
+                const opacity = hours > 0 ? Math.min(0.25 + (hours / maxH) * 0.75, 1) : 1;
                 return (
                   <div
                     key={d}
                     className={`timeline__cell${hours > 0 ? ' timeline__cell--active' : ''}`}
-                    style={{ background: hours > 0 ? color : undefined, opacity }}
+                    style={{ background: hours > 0 ? color : undefined, opacity: hours > 0 ? opacity : 1 }}
                     title={hours > 0 ? `${proj.name} on ${d}: ${hours}h` : undefined}
-                  />
+                  >
+                    {hours > 0 && <span className="timeline__cell-label">{hours}h</span>}
+                  </div>
                 );
               })}
             </div>

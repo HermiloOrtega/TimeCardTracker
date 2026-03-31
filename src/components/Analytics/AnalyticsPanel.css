@@ -268,9 +268,20 @@
   border-right: 1px solid var(--color-border-light);
   transition: filter 0.1s;
   vertical-align: middle;
+  text-align: center;
+  position: relative;
 }
 
 .timeline__cell--active:hover {
   filter: brightness(0.9);
   cursor: default;
+}
+
+.timeline__cell-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  pointer-events: none;
+  line-height: 1;
 }

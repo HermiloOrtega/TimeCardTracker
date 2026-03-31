@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import type { ViewMode, TimeEntry, Project, CategoryDef, AppSettings, TodoItem, Theme, TimeRange } from '../../models/types';
 import { getWeekDays, addDays, getMonday, formatDateRange, getHourSlots, toDateString } from '../../utils/dateUtils';
 import { Toolbar } from '../Toolbar/Toolbar';
+import { CalendarSubHeader } from '../CalendarSubHeader/CalendarSubHeader';
 import { WeekView } from '../WeekView/WeekView';
 import { DailyView } from '../DailyView/DailyView';
 import { EntryModal } from '../EntryModal/EntryModal';
@@ -163,21 +164,13 @@ export function CalendarShell({
   return (
     <div className="calendar-shell">
       <Toolbar
-        viewMode={viewMode}
         dateRangeLabel={dateRangeLabel}
         isAnalyticsActive={appView === 'analytics'}
-        theme={settings.theme}
-        timeRange={settings.timeRange}
-        onViewChange={handleViewChange}
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
         onAddTaskClick={handleAddTaskClick}
         onAddProjectsClick={() => setProjectModalOpen(true)}
-        onAnalyticsClick={() => setAppView(v => v === 'analytics' ? 'calendar' : 'analytics')}
-        onExportClick={() => setExportModalOpen(true)}
-        onToggleTheme={handleToggleTheme}
-        onTimeRangeChange={onSetTimeRange}
       />
 
       <div className="calendar-shell__body">
@@ -188,9 +181,22 @@ export function CalendarShell({
           onDelete={onDeleteTodo}
           onDuplicate={onDuplicateTodo}
           onClearAll={onClearAllTodos}
+          isAnalyticsActive={appView === 'analytics'}
+          onAnalyticsClick={() => setAppView(v => v === 'analytics' ? 'calendar' : 'analytics')}
+          theme={settings.theme}
+          onToggleTheme={handleToggleTheme}
         />
 
         <div className="calendar-shell__main">
+          {appView === 'calendar' && (
+            <CalendarSubHeader
+              viewMode={viewMode}
+              timeRange={settings.timeRange}
+              onViewChange={handleViewChange}
+              onTimeRangeChange={onSetTimeRange}
+              onExportClick={() => setExportModalOpen(true)}
+            />
+          )}
           {appView === 'analytics' ? (
             <AnalyticsPanel
               entries={entries}

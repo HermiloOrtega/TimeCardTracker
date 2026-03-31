@@ -1,0 +1,94 @@
+.cal-subheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.cal-subheader__col {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cal-subheader__col--left  { flex: 1; justify-content: flex-start; }
+.cal-subheader__col--center { flex: 1; justify-content: center; }
+.cal-subheader__col--right  { flex: 1; justify-content: flex-end; }
+
+/* ── Time range select ── */
+.cal-subheader__select {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.cal-subheader__select:hover,
+.cal-subheader__select:focus {
+  border-color: var(--color-accent);
+}
+
+/* ── View toggle buttons ── */
+.cal-subheader__view-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.cal-subheader__view-btn:hover {
+  background: var(--color-hover);
+}
+
+.cal-subheader__view-btn--active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.cal-subheader__view-btn--active:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ── Export button ── */
+.cal-subheader__export-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: none;
+  background: #217346;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.cal-subheader__export-btn:hover {
+  background: #1a5c37;
+}
+
+.cal-subheader__export-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  overflow: hidden;
+}

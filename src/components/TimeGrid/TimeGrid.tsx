@@ -77,9 +77,9 @@ function SlotStrip({ entry, count, projects, categories, onClick }: SlotStripPro
       className="time-grid__strip"
       style={{
         borderLeftColor: color,
-        // min-width: show up to 3 side-by-side; after 3 the slot scrolls
-        minWidth: count > 3 ? '33%' : `${100 / count}%`,
-        flex: count <= 3 ? '1' : '0 0 33%',
+        // vertical: equal height rows; after 3 entries overflow-y scrolls
+        width: '100%',
+        flex: count <= 3 ? '1' : `0 0 ${Math.floor(SLOT_HEIGHT_PX / 3) - 2}px`,
       }}
       draggable
       onDragStart={handleDragStart}

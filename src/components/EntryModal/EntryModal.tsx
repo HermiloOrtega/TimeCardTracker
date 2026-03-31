@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ReactDOM from 'react-dom';
 import type { TimeEntry, Project, CategoryDef } from '../../models/types';
 import { HOUR_SLOTS, formatHour } from '../../utils/dateUtils';
@@ -33,15 +33,10 @@ export function EntryModal(props: EntryModalProps) {
 
   const [description, setDescription]         = useState(initial?.description ?? '');
   const [startHour, setStartHour]             = useState(initial?.startHour ?? (props.mode === 'add' ? props.startHour : 9));
-  const [endHour, setEndHour]                 = useState(initial?.endHour ?? (props.mode === 'add' ? Math.min(props.startHour + 1, 19) : 10));
   const [selectedProjectIds, setSelectedIds]  = useState<string[]>(initial?.projectIds ?? []);
   const [error, setError]                     = useState('');
 
   const date = isEdit ? initial!.date : props.date;
-
-  useEffect(() => {
-    if (endHour <= startHour) setEndHour(startHour + 1);
-  }, [startHour, endHour]);
 
   function toggleProject(id: string) {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]);
@@ -49,8 +44,7 @@ export function EntryModal(props: EntryModalProps) {
 
   function buildPayload(): Omit<TimeEntry, 'id'> | null {
     if (!description.trim()) { setError('Description is required.'); return null; }
-    if (endHour <= startHour) { setError('End time must be after start time.'); return null; }
-    return { date, startHour, endHour, description: description.trim(), projectIds: selectedProjectIds };
+    return { date, startHour, endHour: startHour + 1, description: description.trim(), projectIds: selectedProjectIds };
   }
 
   function handleSave() {
@@ -71,10 +65,6 @@ export function EntryModal(props: EntryModalProps) {
     if (isEdit && onDelete) { onDelete(initial!.id); onClose(); }
   }
 
-  const endHourOptions = HOUR_SLOTS.filter(h => h > startHour).concat(
-    HOUR_SLOTS[HOUR_SLOTS.length - 1] + 1 <= 19 ? [HOUR_SLOTS[HOUR_SLOTS.length - 1] + 1] : []
-  );
-
   const content = (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
@@ -89,19 +79,11 @@ export function EntryModal(props: EntryModalProps) {
             <div className="modal__static">{date}</div>
           </div>
 
-          <div className="modal__field modal__field--row">
-            <div className="modal__field">
-              <label className="modal__label">Start</label>
-              <select className="modal__select" value={startHour} onChange={e => setStartHour(Number(e.target.value))}>
-                {HOUR_SLOTS.map(h => <option key={h} value={h}>{formatHour(h)}</option>)}
-              </select>
-            </div>
-            <div className="modal__field">
-              <label className="modal__label">End</label>
-              <select className="modal__select" value={endHour} onChange={e => setEndHour(Number(e.target.value))}>
-                {endHourOptions.map(h => <option key={h} value={h}>{formatHour(h)}</option>)}
-              </select>
-            </div>
+          <div className="modal__field">
+            <label className="modal__label">Hour</label>
+            <select className="modal__select" value={startHour} onChange={e => setStartHour(Number(e.target.value))}>
+              {HOUR_SLOTS.map(h => <option key={h} value={h}>{formatHour(h)}</option>)}
+            </select>
           </div>
 
           <div className="modal__field">

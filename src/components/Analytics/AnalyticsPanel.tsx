@@ -15,7 +15,7 @@ interface AnalyticsPanelProps {
 type Tab = 'bar' | 'timeline';
 
 function defaultStart(): string {
-  return toDateString(addDays(new Date(), -27)); // ~4 weeks ago
+  return toDateString(addDays(new Date(), -6)); // last 7 days
 }
 
 function defaultEnd(): string {
@@ -23,7 +23,7 @@ function defaultEnd(): string {
 }
 
 export function AnalyticsPanel({ entries, projects, categories, onBack }: AnalyticsPanelProps) {
-  const [tab, setTab]           = useState<Tab>('bar');
+  const [tab, setTab]           = useState<Tab>('timeline');
   const [startDate, setStart]   = useState(defaultStart);
   const [endDate, setEnd]       = useState(defaultEnd);
 
