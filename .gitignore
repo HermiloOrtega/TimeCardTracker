@@ -6,3 +6,6 @@ dist-ssr/
 *.local
 .DS_Store
 *.log
+
+# Claude Code local config — never commit
+.claude/
