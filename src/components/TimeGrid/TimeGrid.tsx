@@ -106,7 +106,8 @@ export function TimeGrid({
   const [hoveredSlot, setHoveredSlot]   = useState<{ date: string; hour: number } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<{ date: string; hour: number } | null>(null);
 
-  const firstHour   = hourSlots[0];
+  const firstHour  = hourSlots[0];
+  const totalSlots = hourSlots.length;
   const acceptsDrop = !!(onTodoDrop || onEntryDrop);
 
   const entriesByDate = useMemo(() => {
@@ -118,8 +119,6 @@ export function TimeGrid({
     }
     return map;
   }, [entries]);
-
-  const totalHeight = hourSlots.length * SLOT_HEIGHT_PX;
 
   function handleDrop(e: React.DragEvent, dateStr: string, hour: number) {
     e.preventDefault();
@@ -157,7 +156,7 @@ export function TimeGrid({
         {/* Time gutter */}
         <div className="time-grid__time-gutter">
           {hourSlots.map(hour => (
-            <div key={hour} className="time-grid__time-label" style={{ height: `${SLOT_HEIGHT_PX}px` }}>
+            <div key={hour} className="time-grid__time-label">
               {formatHour(hour)}
             </div>
           ))}
@@ -190,7 +189,6 @@ export function TimeGrid({
             <div
               key={dateStr}
               className={`time-grid__day-col${weekend ? ' time-grid__day-col--weekend' : ''}`}
-              style={{ height: `${totalHeight}px` }}
             >
               {/* Slot rows (single-hour entries side-by-side) */}
               {hourSlots.map(hour => {
@@ -208,7 +206,6 @@ export function TimeGrid({
                       isDragOver ? 'time-grid__slot--drag-over' : '',
                       count > 0  ? 'time-grid__slot--has-entries' : '',
                     ].join(' ').trim()}
-                    style={{ height: `${SLOT_HEIGHT_PX}px` }}
                     onMouseEnter={() => setHoveredSlot({ date: dateStr, hour })}
                     onMouseLeave={() => setHoveredSlot(null)}
                     onClick={() => onSlotClick(dateStr, hour)}
@@ -253,6 +250,7 @@ export function TimeGrid({
                     key={entry.id}
                     entry={entry}
                     firstHour={firstHour}
+                    totalSlots={totalSlots}
                     column={col}
                     totalColumns={totalCols}
                     projects={projects}
