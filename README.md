@@ -10,7 +10,9 @@ Keeping track of time across multiple projects and companies was always messy �
 
 No sign-in. No complicated setup. No subscriptions. Just a calendar where you track your time.
 
-The long-term goal is to integrate with other tools (calendar apps, billing systems, etc.), but the foundation is personal time tracking — and that part works now.
+**This started as a personal proof of concept** — a working prototype to validate the idea, refine the UX, and demonstrate the value of a dedicated time tracking module before investing in a larger integration. The goal is to showcase it as a standalone tool and, once approved, incorporate it as an additional module within internal business tools — bringing time tracking natively into the platforms where the work already happens.
+
+The foundation is solid and working. Future iterations will focus on deeper integrations and broader team use cases.
 
 ---
 
@@ -550,13 +552,16 @@ Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`.
 
 ## Roadmap
 
-This tool does what it was built for. Future integrations being considered:
+This tool does what it was built for. The next phase is integration — embedding time tracking as a native module within internal business tools, eliminating the need to switch between systems.
 
+Planned improvements:
+
+- Integration with internal tools as an embedded module
 - Google Calendar / Outlook sync
-- Billing / invoicing export
-- Weekly summary email or report
+- Billing and invoicing export
+- Weekly summary reports
 - Mobile-friendly layout
-- Multi-device sync (already partially enabled by the MySQL backend)
+- Role-based access for team use
 
 ---
 
