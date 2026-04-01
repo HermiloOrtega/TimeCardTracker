@@ -43,7 +43,7 @@ The long-term goal is to integrate with other tools (calendar apps, billing syst
 
 - [Node.js](https://nodejs.org/) v18 or higher
 - npm (comes with Node)
-- MySQL 8+ (local) or a Hostinger hosting plan (production)
+- MySQL 8+
 
 ### Installation
 
@@ -58,7 +58,6 @@ npm install
 Run the schema script once to create all tables:
 
 ```bash
-# Local (MySQL must be running)
 mysql -u root -p < docs/database.sql
 ```
 
@@ -66,7 +65,7 @@ Or open `docs/database.sql` in MySQL Workbench and click Execute.
 
 ### Configure environment
 
-Copy `.env.local` and fill in your local MySQL credentials:
+Fill in your MySQL credentials in `.env.local`:
 
 ```
 DB_HOST=127.0.0.1
@@ -76,7 +75,7 @@ DB_PASS=your_password
 DB_NAME=timecardtracker
 ```
 
-Production credentials are set in Hostinger's environment variable panel — never committed to the repo. See [docs/backend-setup.md](docs/backend-setup.md) for the full deployment guide.
+Production credentials are set as environment variables on the server — never committed to the repo. See [docs/backend-setup.md](docs/backend-setup.md) for the full deployment guide.
 
 ### Run locally
 
@@ -307,7 +306,9 @@ Data is stored in **MySQL** (local or Hostinger). The Express API (`/api/...`) h
 | `todo_projects` | Many-to-many: todos ↔ projects |
 | `settings` | Theme + time range preference |
 
-See [docs/database.sql](docs/database.sql) for the full schema and [docs/backend-setup.md](docs/backend-setup.md) for deployment instructions.
+See [docs/database.sql](docs/database.sql) for the full schema and [docs/backend-setup.md](docs/backend-setup.md) for setup and deployment instructions.
+
+Any provider that supports Node.js + MySQL works for hosting — Railway, Render, Fly.io, DigitalOcean, AWS Lightsail, Google Cloud Run, Azure App Service, or any VPS.
 
 ---
 

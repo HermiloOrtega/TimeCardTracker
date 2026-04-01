@@ -3,12 +3,12 @@
 ## Stack
 - **Runtime:** Node.js (ES Modules)
 - **Framework:** Express 5
-- **Database:** MySQL (Hostinger shared DB or local MySQL)
+- **Database:** MySQL 8+
 - **ORM:** none — raw `mysql2/promise` queries
 
 ---
 
-## Folder structure added
+## Folder structure
 
 ```
 project root/
@@ -25,39 +25,25 @@ project root/
 │   ├── database.sql      ← Run once to create all tables
 │   └── backend-setup.md  ← This file
 ├── .env.local            ← Local dev credentials (never commit real values)
-└── .env.production       ← Production template (real values set in Hostinger panel)
+└── .env.production       ← Production template (real values set on the server)
 ```
 
 ---
 
 ## 1. Create the database
 
-### Local
 ```bash
 mysql -u root -p < docs/database.sql
 ```
 
-### Hostinger
-1. Go to **Hosting → Databases → MySQL Databases**
-2. Create a database and user, grant all privileges
-3. Open **phpMyAdmin** → select the database → **Import** → upload `docs/database.sql`
+Or open `docs/database.sql` in MySQL Workbench and click Execute.
 
 ---
 
 ## 2. Install server dependencies
 
 ```bash
-npm install express mysql2 dotenv
-```
-
-Update `package.json` scripts:
-```json
-"scripts": {
-  "dev":        "vite --host",
-  "dev:server": "node --env-file=.env.local server/index.js",
-  "build":      "tsc && vite build",
-  "start":      "node server/index.js"
-}
+npm install express mysql2
 ```
 
 ---
@@ -74,20 +60,21 @@ DB_PASS=yourLocalPassword
 DB_NAME=timecardtracker
 PORT=3001
 ```
+
 Run locally with:
 ```bash
 npm run dev:server
 ```
 
-### Production — Hostinger
-Set these in **Hosting → Node.js → Environment Variables** (do NOT commit real credentials):
+### Production — `.env.production`
+Set these as environment variables on your server (do NOT commit real credentials):
 ```
 NODE_ENV=production
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=your_hostinger_db_user
-DB_PASS=your_hostinger_db_password
-DB_NAME=your_hostinger_db_name
+DB_USER=your_db_user
+DB_PASS=your_db_password
+DB_NAME=timecardtracker
 PORT=3001
 ```
 
@@ -97,25 +84,37 @@ PORT=3001
 
 `server/db.js` and `server/index.js` read `process.env.NODE_ENV`:
 
-| `NODE_ENV`     | Behavior |
+| `NODE_ENV`    | Behavior |
 |---|---|
-| `development`  | Uses `.env.local` values, 5 DB connections, skips static file serving |
-| `production`   | Uses Hostinger env vars, 10 DB connections, serves `/dist` as static frontend |
+| `development` | Uses `.env.local` values, 5 DB connections, skips static file serving |
+| `production`  | Uses server env vars, 10 DB connections, serves `/dist` as static frontend |
 
 No code change needed between environments — only env vars differ.
 
 ---
 
-## 5. Hostinger deployment
+## 5. Deployment
 
-1. Push to GitHub (`main` branch)
-2. In Hostinger → **Node.js** → connect your GitHub repo
-3. Set entry point: `server/index.js`
-4. Set environment variables (see section 3)
-5. Run **Build command:** `npm run build`
-6. **Start command:** `npm start`
+1. Build the frontend: `npm run build`
+2. Set environment variables on the server
+3. Start the server: `npm start` (entry point: `server/index.js`)
 
-Hostinger will auto-deploy on each push to `main`.
+### Hosting options
+
+Any provider that supports Node.js + MySQL will work. Popular choices:
+
+| Provider | Type | Notes |
+|---|---|---|
+| **Railway** | PaaS | Free tier, auto-deploys from GitHub, MySQL plugin available |
+| **Render** | PaaS | Free tier, Node.js + MySQL, easy GitHub integration |
+| **Fly.io** | PaaS | Free tier, good for small apps, MySQL via PlanetScale or built-in |
+| **DigitalOcean App Platform** | PaaS | Managed Node.js + managed MySQL database |
+| **AWS Lightsail** | VPS | Low cost, full control, install MySQL manually |
+| **Google Cloud Run** | Serverless | Container-based, pairs with Cloud SQL (MySQL) |
+| **Azure App Service** | PaaS | Node.js + Azure Database for MySQL |
+| **VPS (any provider)** | Self-managed | Full control — install Node.js + MySQL directly |
+
+For all options: set the environment variables from section 3 in the provider's dashboard, never in the code.
 
 ---
 
@@ -146,7 +145,7 @@ Hostinger will auto-deploy on each push to `main`.
 
 ## 7. Security notes
 
-- `.env.local` and `.env.production` are in `.gitignore` — never commit real credentials
-- The `.env.production` file in this repo is a **template only** with placeholder values
-- Real production credentials are stored exclusively in Hostinger's environment variable panel
+- `.env.local` is git-ignored — never committed
+- `.env.production` in the repo is a **template only** with placeholder values
+- Real production credentials are stored as server environment variables only
 - The public GitHub repo never contains any database passwords

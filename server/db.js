@@ -2,8 +2,7 @@
  * db.js — MySQL connection pool
  *
  * Reads credentials from environment variables.
- * Automatically uses .env.local in development and
- * Hostinger's env vars in production.
+ * Uses .env.local in development and server env vars in production.
  */
 
 import mysql from 'mysql2/promise';
