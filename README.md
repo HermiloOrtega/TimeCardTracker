@@ -294,7 +294,7 @@ Uses **SheetJS (`xlsx`)** — the spreadsheet is generated entirely in the brows
 
 ## Data Storage
 
-Data is stored in **MySQL** (local or Hostinger). The Express API (`/api/...`) handles all reads and writes.
+Data is stored in **MySQL** (local or any hosting provider). The Express API (`/api/...`) handles all reads and writes.
 
 | Table | Contents |
 |---|---|
@@ -374,11 +374,11 @@ TimeCardTracker/
 ├── vite.config.ts
 ├── package.json
 ├── .env.local                   Local DB credentials (git-ignored)
-├── .env.production              Template — real values set in Hostinger panel
+├── .env.production              Template — real values set on the hosting provider
 │
 ├── docs/
 │   ├── database.sql             MySQL schema — run once to init tables
-│   └── backend-setup.md        Full local + Hostinger setup guide
+│   └── backend-setup.md        Full local + production setup guide
 │
 ├── server/
 │   ├── index.js                 Express entry point
@@ -541,7 +541,7 @@ Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`.
 
 - No secrets in the codebase — credentials are environment variables only
 - `.env.local` is git-ignored — never committed
-- `.env.production` in the repo is a placeholder template only — real values live in Hostinger's panel
+- `.env.production` in the repo is a placeholder template only — real values are set on the hosting provider's environment panel
 - No external API calls at runtime
 - No authentication — intentional for a personal local tool
 - All user input rendered via React's default escaping — no `dangerouslySetInnerHTML`
