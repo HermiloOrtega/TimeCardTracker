@@ -1,101 +1,158 @@
 import { useMemo } from 'react';
 import type { TimeEntry, Project, CategoryDef } from '../../models/types';
-import { getCategoryColor } from '../../utils/colorUtils';
 
 interface TimelineProps {
   entries: TimeEntry[];
   projects: Project[];
   categories: CategoryDef[];
+  groupBy: 'project' | 'category';
 }
 
-export function Timeline({ entries, projects, categories }: TimelineProps) {
-  const { activeProjects, dates, cellMap, maxPerProject } = useMemo(() => {
-    const dateSet = new Set<string>();
-    const cellAccum = new Map<string, number>(); // 'projId:date' → hours
+export function Timeline({ entries, projects, categories, groupBy }: TimelineProps) {
+  const { rows, dates, cellMap, maxPerRow, totalsPerRow, totalsPerDate, grandTotal } = useMemo(() => {
+    // Count entries per slot to split time fairly
+    const slotCount = new Map<string, number>();
+    for (const e of entries) {
+      const k = `${e.date}:${e.startHour}`;
+      slotCount.set(k, (slotCount.get(k) ?? 0) + 1);
+    }
+
+    const cellAccum = new Map<string, number>(); // 'rowKey:date' → hours
+    const dateSet   = new Set<string>();
 
     for (const entry of entries) {
       dateSet.add(entry.date);
-      const hours = entry.endHour - entry.startHour;
+      const slotShare = 1 / (slotCount.get(`${entry.date}:${entry.startHour}`) ?? 1);
 
-      if (entry.projectIds.length === 0) {
-        const key = `__none__:${entry.date}`;
-        cellAccum.set(key, (cellAccum.get(key) ?? 0) + hours);
+      let groupKeys: string[];
+      if (groupBy === 'project') {
+        groupKeys = entry.projectIds.length === 0 ? ['__none__'] : entry.projectIds;
       } else {
-        for (const pid of entry.projectIds) {
-          const key = `${pid}:${entry.date}`;
-          cellAccum.set(key, (cellAccum.get(key) ?? 0) + hours);
+        if (entry.projectIds.length === 0) {
+          groupKeys = ['__none__'];
+        } else {
+          groupKeys = [...new Set(
+            entry.projectIds.map(pid => projects.find(p => p.id === pid)?.categoryId ?? '__none__')
+          )];
         }
+      }
+
+      const share = slotShare / groupKeys.length;
+      for (const key of groupKeys) {
+        const cell = `${key}:${entry.date}`;
+        cellAccum.set(cell, (cellAccum.get(cell) ?? 0) + share);
       }
     }
 
     const sortedDates = [...dateSet].sort();
 
-    // Active projects = those with any activity in range
-    const activeProjIds = new Set<string>();
-    for (const entry of entries) {
-      if (entry.projectIds.length === 0) activeProjIds.add('__none__');
-      else entry.projectIds.forEach(pid => activeProjIds.add(pid));
-    }
-    const activeProjs = projects.filter(p => activeProjIds.has(p.id));
-    if (activeProjIds.has('__none__')) {
-      activeProjs.push({ id: '__none__', name: '(no project)', categoryId: '' });
+    // Build row list
+    const activeKeys = new Set<string>();
+    for (const [cell] of cellAccum) activeKeys.add(cell.split(':')[0]);
+
+    let rowItems: { id: string; name: string; color: string }[] = [];
+    if (groupBy === 'project') {
+      rowItems = projects
+        .filter(p => activeKeys.has(p.id))
+        .map(p => ({ id: p.id, name: p.name, color: categories.find(c => c.id === p.categoryId)?.color ?? '#9E9E9E' }));
+      if (activeKeys.has('__none__')) rowItems.push({ id: '__none__', name: '(unassigned)', color: '#9E9E9E' });
+    } else {
+      rowItems = categories
+        .filter(c => activeKeys.has(c.id))
+        .map(c => ({ id: c.id, name: c.name, color: c.color }));
+      if (activeKeys.has('__none__')) rowItems.push({ id: '__none__', name: '(unassigned)', color: '#9E9E9E' });
     }
 
-    // Max hours per project (for opacity scaling)
-    const maxPerProj = new Map<string, number>();
-    for (const [key, hours] of cellAccum) {
-      const [pid] = key.split(':');
-      maxPerProj.set(pid, Math.max(maxPerProj.get(pid) ?? 0, hours));
+    // Max per row (for opacity scaling)
+    const maxPerRow = new Map<string, number>();
+    for (const [cell, hours] of cellAccum) {
+      const key = cell.split(':')[0];
+      maxPerRow.set(key, Math.max(maxPerRow.get(key) ?? 0, hours));
     }
 
-    return {
-      activeProjects: activeProjs,
-      dates: sortedDates,
-      cellMap: cellAccum,
-      maxPerProject: maxPerProj,
-    };
-  }, [entries, projects]);
+    // Totals per row (sum across all dates)
+    const totalsPerRow = new Map<string, number>();
+    for (const row of rowItems) {
+      totalsPerRow.set(row.id, sortedDates.reduce((s, d) => s + (cellAccum.get(`${row.id}:${d}`) ?? 0), 0));
+    }
 
-  if (dates.length === 0 || activeProjects.length === 0) {
+    // Totals per date (sum across all rows)
+    const totalsPerDate = new Map<string, number>();
+    for (const d of sortedDates) {
+      totalsPerDate.set(d, rowItems.reduce((s, r) => s + (cellAccum.get(`${r.id}:${d}`) ?? 0), 0));
+    }
+
+    const grandTotal = [...totalsPerDate.values()].reduce((s, v) => s + v, 0);
+
+    return { rows: rowItems, dates: sortedDates, cellMap: cellAccum, maxPerRow, totalsPerRow, totalsPerDate, grandTotal };
+  }, [entries, projects, categories, groupBy]);
+
+  if (dates.length === 0 || rows.length === 0) {
     return <div className="analytics-empty">No data for the selected range.</div>;
   }
+
+  const fmt = (h: number) => h === 0 ? '' : h % 1 === 0 ? `${h}h` : `${h.toFixed(1)}h`;
 
   return (
     <div className="timeline-wrap">
       <div className="timeline">
-        {/* Header */}
+
+        {/* Header row */}
         <div className="timeline__row">
-          <div className="timeline__label-cell timeline__label-cell--header">Project</div>
+          <div className="timeline__label-cell timeline__label-cell--header">
+            {groupBy === 'project' ? 'Project' : 'Category'}
+          </div>
           {dates.map(d => (
             <div key={d} className="timeline__date-cell">{d.slice(5)}</div>
           ))}
+          <div className="timeline__date-cell timeline__date-cell--total">Total</div>
         </div>
 
-        {/* Rows */}
-        {activeProjects.map(proj => {
-          const color = proj.id === '__none__' ? '#9E9E9E' : getCategoryColor(proj.categoryId, categories);
-          const maxH  = maxPerProject.get(proj.id) ?? 1;
-
+        {/* Data rows */}
+        {rows.map(row => {
+          const maxH     = maxPerRow.get(row.id) ?? 1;
+          const rowTotal = totalsPerRow.get(row.id) ?? 0;
           return (
-            <div key={proj.id} className="timeline__row">
-              <div className="timeline__label-cell" title={proj.name}>{proj.name}</div>
+            <div key={row.id} className="timeline__row">
+              <div className="timeline__label-cell" title={row.name}>{row.name}</div>
               {dates.map(d => {
-                const hours = cellMap.get(`${proj.id}:${d}`) ?? 0;
+                const hours   = cellMap.get(`${row.id}:${d}`) ?? 0;
                 const opacity = hours > 0 ? Math.min(0.25 + (hours / maxH) * 0.75, 1) : 1;
                 return (
                   <div
                     key={d}
                     className={`timeline__cell${hours > 0 ? ' timeline__cell--active' : ''}`}
-                    style={{ background: hours > 0 ? color : undefined, opacity: hours > 0 ? opacity : 1 }}
-                    title={hours > 0 ? `${proj.name} on ${d}: ${hours}h` : undefined}
+                    style={{ background: hours > 0 ? row.color : undefined, opacity: hours > 0 ? opacity : 1 }}
+                    title={hours > 0 ? `${row.name} · ${d}: ${fmt(hours)}` : undefined}
                   >
-                    {hours > 0 && <span className="timeline__cell-label">{hours}h</span>}
+                    {hours > 0 && <span className="timeline__cell-label">{fmt(hours)}</span>}
                   </div>
                 );
               })}
+              {/* Row total */}
+              <div className="timeline__cell timeline__cell--total">
+                {rowTotal > 0 && <span className="timeline__cell-label timeline__cell-label--total">{fmt(rowTotal)}</span>}
+              </div>
             </div>
           );
         })}
+
+        {/* Totals row */}
+        <div className="timeline__row timeline__row--total">
+          <div className="timeline__label-cell timeline__label-cell--total">Total</div>
+          {dates.map(d => {
+            const total = totalsPerDate.get(d) ?? 0;
+            return (
+              <div key={d} className="timeline__cell timeline__cell--total">
+                {total > 0 && <span className="timeline__cell-label timeline__cell-label--total">{fmt(total)}</span>}
+              </div>
+            );
+          })}
+          <div className="timeline__cell timeline__cell--total timeline__cell--grand">
+            <span className="timeline__cell-label timeline__cell-label--total">{fmt(grandTotal)}</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );

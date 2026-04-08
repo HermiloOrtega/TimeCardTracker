@@ -21,6 +21,9 @@ router.get('/', async (req, res) => {
   const [rows] = await pool.query(sql, params);
   const entries = rows.map(r => ({
     ...r,
+    date: r.date instanceof Date
+      ? r.date.toISOString().slice(0, 10)
+      : r.date,
     projectIds: r.project_ids ? r.project_ids.split(',') : [],
     project_ids: undefined,
   }));

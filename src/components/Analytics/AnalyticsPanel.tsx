@@ -82,9 +82,27 @@ export function AnalyticsPanel({ entries, projects, categories, onBack }: Analyt
         {!isValidRange ? (
           <div className="analytics-empty">Start date must be before end date.</div>
         ) : tab === 'bar' ? (
-          <BarChart entries={filteredEntries} projects={projects} categories={categories} />
+          <>
+            <div className="analytics-section">
+              <h3 className="analytics-section__title">By Project</h3>
+              <BarChart entries={filteredEntries} projects={projects} categories={categories} groupBy="project" />
+            </div>
+            <div className="analytics-section">
+              <h3 className="analytics-section__title">By Category</h3>
+              <BarChart entries={filteredEntries} projects={projects} categories={categories} groupBy="category" />
+            </div>
+          </>
         ) : (
-          <Timeline entries={filteredEntries} projects={projects} categories={categories} />
+          <>
+            <div className="analytics-section">
+              <h3 className="analytics-section__title">By Project</h3>
+              <Timeline entries={filteredEntries} projects={projects} categories={categories} groupBy="project" />
+            </div>
+            <div className="analytics-section">
+              <h3 className="analytics-section__title">By Category</h3>
+              <Timeline entries={filteredEntries} projects={projects} categories={categories} groupBy="category" />
+            </div>
+          </>
         )}
       </div>
     </div>
