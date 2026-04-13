@@ -60,6 +60,17 @@
   background: #2d9249;
 }
 
+.toolbar__btn--add-category {
+  background: #9C27B0;
+  color: #fff;
+  border-color: #9C27B0;
+  font-weight: 500;
+}
+
+.toolbar__btn--add-category:hover {
+  background: #7B1FA2;
+}
+
 .toolbar__btn--add-projects {
   background: var(--color-accent);
   color: #fff;
@@ -69,4 +80,15 @@
 
 .toolbar__btn--add-projects:hover {
   background: var(--color-accent-hover);
+}
+
+.toolbar__btn--copy-week {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  font-weight: 500;
+}
+
+.toolbar__btn--copy-week:hover {
+  background: var(--color-hover);
 }

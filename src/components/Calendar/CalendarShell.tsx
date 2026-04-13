@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { ViewMode, TimeEntry, Project, CategoryDef, AppSettings, TodoItem, Theme, TimeRange } from '../../models/types';
-import { getWeekDays, addDays, getMonday, formatDateRange, getHourSlots, toDateString } from '../../utils/dateUtils';
+import { getWeekDays, addDays, getMonday, formatDateRange, getHourSlots, toDateString, fromDateString } from '../../utils/dateUtils';
 import { Toolbar } from '../Toolbar/Toolbar';
 import { CalendarSubHeader } from '../CalendarSubHeader/CalendarSubHeader';
 import { WeekView } from '../WeekView/WeekView';
@@ -11,10 +11,12 @@ import { AnalyticsPanel } from '../Analytics/AnalyticsPanel';
 import { ExportModal } from '../ExportModal/ExportModal';
 import { TodoSidebar } from '../TodoSidebar/TodoSidebar';
 import { ConfirmDropModal } from '../ConfirmDropModal/ConfirmDropModal';
+import { CategoryModal } from '../CategoryModal/CategoryModal';
+import { TimeDistribution } from '../TimeDistribution/TimeDistribution';
 import './CalendarShell.css';
 
 type EntryModalState =
-  | { mode: 'add'; date: string; startHour: number }
+  | { mode: 'add'; date: string; startHour: number; fromSlot?: boolean }
   | { mode: 'edit'; entry: TimeEntry }
   | null;
 
@@ -33,7 +35,8 @@ interface CalendarShellProps {
   onDeleteEntry: (id: string) => void;
   onAddProject: (name: string, categoryId: string) => void;
   onDeleteProject: (id: string) => void;
-  onAddCategory: (name: string, color: string) => void;
+  onAddCategory: (name: string, color: string, weeklyHours: number) => void;
+  onUpdateCategory: (id: string, name: string, color: string, weeklyHours: number) => void;
   onDeleteCategory: (id: string) => void;
   onSetTheme: (theme: Theme) => void;
   onSetTimeRange: (range: TimeRange) => void;
@@ -56,6 +59,7 @@ export function CalendarShell({
   onAddProject,
   onDeleteProject,
   onAddCategory,
+  onUpdateCategory,
   onDeleteCategory,
   onSetTheme,
   onSetTimeRange,
@@ -69,7 +73,8 @@ export function CalendarShell({
   const [viewMode, setViewMode]                 = useState<ViewMode>('week-without-weekends');
   const [anchorDate, setAnchorDate]             = useState<Date>(() => getMonday(new Date()));
   const [entryModalState, setEntryModalState]   = useState<EntryModalState>(null);
-  const [projectModalOpen, setProjectModalOpen] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [projectModalOpen, setProjectModalOpen]   = useState(false);
   const [exportModalOpen, setExportModalOpen]   = useState(false);
   const [dropPending, setDropPending]           = useState<DropPending>(null);
 
@@ -103,7 +108,7 @@ export function CalendarShell({
   }
 
   function handleSlotClick(date: string, hour: number) {
-    setEntryModalState({ mode: 'add', date, startHour: hour });
+    setEntryModalState({ mode: 'add', date, startHour: hour, fromSlot: true });
   }
 
   function handleAddTaskClick() {
@@ -151,6 +156,35 @@ export function CalendarShell({
     });
   }
 
+  async function handleCopyLastWeek() {
+    // Collect the date strings for the previous week (7 days before each visible day)
+    const lastWeekDates = new Set(days.map(d => toDateString(addDays(d, -7))));
+    const lastWeekEntries = entries.filter(e => lastWeekDates.has(e.date));
+
+    if (lastWeekEntries.length === 0) {
+      window.alert('No tasks found in the previous week.');
+      return;
+    }
+
+    const thisWeekDates = new Set(days.map(d => toDateString(d)));
+    const alreadyHere = entries.some(e => thisWeekDates.has(e.date));
+    const confirmMsg = alreadyHere
+      ? `Copy ${lastWeekEntries.length} task(s) from last week into this week?\n\nThis week already has entries — duplicates may be created.`
+      : `Copy ${lastWeekEntries.length} task(s) from last week into this week?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    for (const e of lastWeekEntries) {
+      await onAddEntry({
+        date: toDateString(addDays(fromDateString(e.date), 7)),
+        startHour: e.startHour,
+        endHour: e.endHour,
+        description: e.description,
+        projectIds: e.projectIds,
+      });
+    }
+  }
+
   function handleDropConfirm(payload: Omit<TimeEntry, 'id'>) {
     onAddEntry(payload);
     if (dropPending) onDeleteTodo(dropPending.todoId);
@@ -170,7 +204,9 @@ export function CalendarShell({
         onNext={handleNext}
         onToday={handleToday}
         onAddTaskClick={handleAddTaskClick}
+        onAddCategoryClick={() => setCategoryModalOpen(true)}
         onAddProjectsClick={() => setProjectModalOpen(true)}
+        onCopyLastWeekClick={handleCopyLastWeek}
       />
 
       <div className="calendar-shell__body">
@@ -205,29 +241,45 @@ export function CalendarShell({
               onBack={() => setAppView('calendar')}
             />
           ) : viewMode === 'daily' ? (
-            <DailyView
-              day={anchorDate}
-              hourSlots={hourSlots}
-              entries={entries}
-              projects={projects}
-              categories={categories}
-              onSlotClick={handleSlotClick}
-              onEntryClick={handleEntryClick}
-              onTodoDrop={handleTodoDrop}
-              onEntryDrop={handleEntryDrop}
-            />
+            <>
+              <DailyView
+                day={anchorDate}
+                hourSlots={hourSlots}
+                entries={entries}
+                projects={projects}
+                categories={categories}
+                onSlotClick={handleSlotClick}
+                onEntryClick={handleEntryClick}
+                onTodoDrop={handleTodoDrop}
+                onEntryDrop={handleEntryDrop}
+              />
+              <TimeDistribution
+                entries={entries}
+                projects={projects}
+                categories={categories}
+                days={days}
+              />
+            </>
           ) : (
-            <WeekView
-              days={days}
-              hourSlots={hourSlots}
-              entries={entries}
-              projects={projects}
-              categories={categories}
-              onSlotClick={handleSlotClick}
-              onEntryClick={handleEntryClick}
-              onTodoDrop={handleTodoDrop}
-              onEntryDrop={handleEntryDrop}
-            />
+            <>
+              <WeekView
+                days={days}
+                hourSlots={hourSlots}
+                entries={entries}
+                projects={projects}
+                categories={categories}
+                onSlotClick={handleSlotClick}
+                onEntryClick={handleEntryClick}
+                onTodoDrop={handleTodoDrop}
+                onEntryDrop={handleEntryDrop}
+              />
+              <TimeDistribution
+                entries={entries}
+                projects={projects}
+                categories={categories}
+                days={days}
+              />
+            </>
           )}
         </div>
       </div>
@@ -238,6 +290,7 @@ export function CalendarShell({
             mode="add"
             date={entryModalState.date}
             startHour={entryModalState.startHour}
+            fromSlot={entryModalState.fromSlot}
             projects={projects}
             categories={categories}
             onSave={handleSave}
@@ -257,14 +310,23 @@ export function CalendarShell({
         )
       )}
 
+      {categoryModalOpen && (
+        <CategoryModal
+          categories={categories}
+          projects={projects}
+          onAdd={onAddCategory}
+          onUpdate={onUpdateCategory}
+          onDelete={onDeleteCategory}
+          onClose={() => setCategoryModalOpen(false)}
+        />
+      )}
+
       {projectModalOpen && (
         <ProjectModal
           projects={projects}
           categories={categories}
           onAdd={onAddProject}
           onDelete={onDeleteProject}
-          onAddCategory={onAddCategory}
-          onDeleteCategory={onDeleteCategory}
           onClose={() => setProjectModalOpen(false)}
         />
       )}

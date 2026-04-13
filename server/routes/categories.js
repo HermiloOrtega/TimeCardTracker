@@ -9,14 +9,20 @@ router.get('/', async (_req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { id, name, color } = req.body;
-  await pool.query('INSERT INTO categories (id, name, color) VALUES (?, ?, ?)', [id, name, color]);
+  const { id, name, color, weekly_hours = 0 } = req.body;
+  await pool.query(
+    'INSERT INTO categories (id, name, color, weekly_hours) VALUES (?, ?, ?, ?)',
+    [id, name, color, weekly_hours]
+  );
   res.status(201).json({ id });
 });
 
 router.put('/:id', async (req, res) => {
-  const { name, color } = req.body;
-  await pool.query('UPDATE categories SET name=?, color=? WHERE id=?', [name, color, req.params.id]);
+  const { name, color, weekly_hours = 0 } = req.body;
+  await pool.query(
+    'UPDATE categories SET name=?, color=?, weekly_hours=? WHERE id=?',
+    [name, color, weekly_hours, req.params.id]
+  );
   res.json({ ok: true });
 });
 

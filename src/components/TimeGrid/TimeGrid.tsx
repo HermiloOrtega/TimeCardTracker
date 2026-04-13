@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { TimeEntry, Project, CategoryDef } from '../../models/types';
 import {
   SLOT_HEIGHT_PX,
@@ -87,7 +87,6 @@ function SlotStrip({ entry, count, projects, categories, onClick }: SlotStripPro
       title={`${entry.description}${names ? ` — ${names}` : ''}`}
     >
       <span className="time-grid__strip-desc">{entry.description}</span>
-      {names && <span className="time-grid__strip-projects">{names}</span>}
     </div>
   );
 }
@@ -105,9 +104,20 @@ export function TimeGrid({
 }: TimeGridProps) {
   const [hoveredSlot, setHoveredSlot]   = useState<{ date: string; hour: number } | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<{ date: string; hour: number } | null>(null);
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const firstHour  = hourSlots[0];
   const totalSlots = hourSlots.length;
+
+  const todayStr = toDateString(new Date());
+  const todayVisible = days.some(d => toDateString(d) === todayStr);
+  const nowTopPercent = (now.getHours() + now.getMinutes() / 60 - firstHour) / totalSlots * 100;
+  const showNowLine = todayVisible && nowTopPercent >= 0 && nowTopPercent <= 100;
   const acceptsDrop = !!(onTodoDrop || onEntryDrop);
 
   const entriesByDate = useMemo(() => {
@@ -185,11 +195,24 @@ export function TimeGrid({
           // Column layout for overlapping multi-hour blocks
           const columnLayout = assignColumnLayout(multiHour);
 
+          const isToday = dateStr === todayStr;
+
           return (
             <div
               key={dateStr}
               className={`time-grid__day-col${weekend ? ' time-grid__day-col--weekend' : ''}`}
             >
+              {/* Now line — only on today's column */}
+              {isToday && showNowLine && (
+                <div
+                  className="time-grid__now-line"
+                  style={{ top: `${nowTopPercent}%` }}
+                  aria-hidden="true"
+                >
+                  <span className="time-grid__now-dot" />
+                </div>
+              )}
+
               {/* Slot rows (single-hour entries side-by-side) */}
               {hourSlots.map(hour => {
                 const strips     = singleHour.get(hour) ?? [];

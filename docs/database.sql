@@ -14,9 +14,10 @@ USE timecardtracker;
 -- Categories
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS categories (
-  id    VARCHAR(36)  NOT NULL,
-  name  VARCHAR(255) NOT NULL,
-  color VARCHAR(20)  NOT NULL,
+  id           VARCHAR(36)   NOT NULL,
+  name         VARCHAR(255)  NOT NULL,
+  color        VARCHAR(20)   NOT NULL,
+  weekly_hours DECIMAL(5,2)  NOT NULL DEFAULT 0.00,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

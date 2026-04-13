@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import ReactDOM from 'react-dom';
 import type { Project, CategoryDef } from '../../models/types';
-import { PRESET_COLORS } from '../../utils/colorUtils';
 import './ProjectModal.css';
 
 interface ProjectModalProps {
@@ -9,8 +8,6 @@ interface ProjectModalProps {
   categories: CategoryDef[];
   onAdd: (name: string, categoryId: string) => void;
   onDelete: (id: string) => void;
-  onAddCategory: (name: string, color: string) => void;
-  onDeleteCategory: (id: string) => void;
   onClose: () => void;
 }
 
@@ -19,39 +16,11 @@ export function ProjectModal({
   categories,
   onAdd,
   onDelete,
-  onAddCategory,
-  onDeleteCategory,
   onClose,
 }: ProjectModalProps) {
-  // Category form state
-  const [catName, setCatName]   = useState('');
-  const [catColor, setCatColor] = useState(PRESET_COLORS[5]); // default blue
-  const [catError, setCatError] = useState('');
-
-  // Project form state
-  const [projName, setProjName]       = useState('');
-  const [projCatId, setProjCatId]     = useState('');
-  const [projError, setProjError]     = useState('');
-
-  function handleAddCategory() {
-    const trimmed = catName.trim();
-    if (!trimmed) { setCatError('Name is required.'); return; }
-    const duplicate = categories.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
-    if (duplicate) { setCatError('A category with this name already exists.'); return; }
-    onAddCategory(trimmed, catColor);
-    setCatName('');
-    setCatError('');
-  }
-
-  function handleDeleteCategory(id: string) {
-    const usedBy = projects.filter(p => p.categoryId === id).length;
-    if (usedBy > 0) {
-      setCatError(`Cannot delete — ${usedBy} project${usedBy > 1 ? 's' : ''} use this category.`);
-      return;
-    }
-    setCatError('');
-    onDeleteCategory(id);
-  }
+  const [projName, setProjName]   = useState('');
+  const [projCatId, setProjCatId] = useState('');
+  const [projError, setProjError] = useState('');
 
   function handleAddProject() {
     const trimmed = projName.trim();
@@ -73,77 +42,12 @@ export function ProjectModal({
         </div>
 
         <div className="modal__body">
-          {/* ── Categories section ── */}
-          <section className="project-modal__section">
-            <div className="project-modal__section-title">Categories</div>
-
-            <div className="modal__field">
-              <label className="modal__label">Category Name</label>
-              <input
-                className="modal__input"
-                type="text"
-                placeholder="e.g. Client A"
-                value={catName}
-                onChange={e => setCatName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
-              />
-            </div>
-
-            <div className="modal__field">
-              <label className="modal__label">Color</label>
-              <div className="project-modal__swatches">
-                {PRESET_COLORS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`project-modal__swatch${catColor === color ? ' project-modal__swatch--selected' : ''}`}
-                    style={{ background: color }}
-                    onClick={() => setCatColor(color)}
-                    aria-label={color}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {catError && <div className="modal__error">{catError}</div>}
-
-            <button className="modal__btn modal__btn--primary project-modal__add-btn" onClick={handleAddCategory}>
-              Add Category
-            </button>
-
-            {categories.length > 0 && (
-              <div className="project-modal__list">
-                {categories.map(cat => {
-                  const usedBy = projects.filter(p => p.categoryId === cat.id).length;
-                  return (
-                    <div key={cat.id} className="project-modal__list-item">
-                      <span className="modal__project-dot" style={{ background: cat.color }} />
-                      <span className="project-modal__item-name">{cat.name}</span>
-                      {usedBy > 0 && (
-                        <span className="project-modal__item-cat">{usedBy} project{usedBy > 1 ? 's' : ''}</span>
-                      )}
-                      <button
-                        className={`project-modal__delete-btn${usedBy > 0 ? ' project-modal__delete-btn--disabled' : ''}`}
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        aria-label={`Delete ${cat.name}`}
-                        title={usedBy > 0 ? `${usedBy} project(s) use this category` : 'Delete category'}
-                      >
-                        &#x2715;
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          {/* ── Projects section ── */}
           <section className="project-modal__section">
             <div className="project-modal__section-title">Projects</div>
 
             {categories.length === 0 ? (
               <div className="project-modal__empty-hint">
-                Create at least one category before adding projects.
+                Create at least one category (via + Category) before adding projects.
               </div>
             ) : (
               <>

@@ -7,7 +7,7 @@ import { CalendarShell } from './components/Calendar/CalendarShell';
 import './App.css';
 
 export default function App() {
-  const { categories, addCategory, deleteCategory }                          = useCategories();
+  const { categories, addCategory, updateCategory, deleteCategory }          = useCategories();
   const { projects, addProject, deleteProject }                              = useProjects();
   const { entries, addEntry, updateEntry, deleteEntry, scrubProjectId }      = useTimeEntries();
   const { settings, setTheme, setTimeRange }                                 = useSettings();
@@ -32,6 +32,7 @@ export default function App() {
         onAddProject={addProject}
         onDeleteProject={handleDeleteProject}
         onAddCategory={addCategory}
+        onUpdateCategory={updateCategory}
         onDeleteCategory={deleteCategory}
         onSetTheme={setTheme}
         onSetTimeRange={setTimeRange}

@@ -1,0 +1,55 @@
+.category-modal {
+  width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.category-modal__hours-input {
+  width: 100px !important;
+}
+
+/* Edit row — stacks vertically inside the list */
+.category-modal__edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--color-hover);
+  border: 1px solid var(--color-border);
+}
+
+.category-modal__edit-name {
+  flex: 1;
+}
+
+.category-modal__edit-swatches {
+  flex-wrap: wrap;
+}
+
+.category-modal__edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.category-modal__save-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+/* Edit icon button */
+.category-modal__edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.category-modal__edit-btn:hover {
+  background: var(--color-hover);
+  color: var(--color-accent);
+}

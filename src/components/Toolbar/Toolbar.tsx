@@ -7,7 +7,9 @@ interface ToolbarProps {
   onNext: () => void;
   onToday: () => void;
   onAddTaskClick: () => void;
+  onAddCategoryClick: () => void;
   onAddProjectsClick: () => void;
+  onCopyLastWeekClick: () => void;
 }
 
 export function Toolbar({
@@ -17,7 +19,9 @@ export function Toolbar({
   onNext,
   onToday,
   onAddTaskClick,
+  onAddCategoryClick,
   onAddProjectsClick,
+  onCopyLastWeekClick,
 }: ToolbarProps) {
   return (
     <div className="toolbar">
@@ -38,8 +42,14 @@ export function Toolbar({
         <button className="toolbar__btn toolbar__btn--add-task" onClick={onAddTaskClick}>
           + Task
         </button>
+        <button className="toolbar__btn toolbar__btn--add-category" onClick={onAddCategoryClick}>
+          + Category
+        </button>
         <button className="toolbar__btn toolbar__btn--add-projects" onClick={onAddProjectsClick}>
           + Projects
+        </button>
+        <button className="toolbar__btn toolbar__btn--copy-week" onClick={onCopyLastWeekClick}>
+          ⧉ Copy last week
         </button>
       </div>
     </div>

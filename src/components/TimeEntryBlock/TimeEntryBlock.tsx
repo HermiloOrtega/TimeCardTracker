@@ -47,7 +47,6 @@ export function TimeEntryBlock({ entry, firstHour, totalSlots, column = 0, total
       title={`${entry.description}${projectNames ? ` — ${projectNames}` : ''}`}
     >
       <span className="entry-block__desc">{entry.description}</span>
-      {projectNames && <span className="entry-block__projects">{projectNames}</span>}
     </div>
   );
 }

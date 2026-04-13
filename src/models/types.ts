@@ -13,7 +13,8 @@ export interface AppSettings {
 export interface CategoryDef {
   id: string;
   name: string;
-  color: string; // hex e.g. '#4CAF50'
+  color: string;       // hex e.g. '#4CAF50'
+  weeklyHours: number; // target hours per week (default 0)
 }
 
 export interface Project {

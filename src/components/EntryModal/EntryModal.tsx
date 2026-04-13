@@ -9,6 +9,7 @@ interface AddMode {
   mode: 'add';
   date: string;
   startHour: number;
+  fromSlot?: boolean;
 }
 
 interface EditMode {
@@ -28,8 +29,9 @@ type EntryModalProps = (AddMode | EditMode) & {
 export function EntryModal(props: EntryModalProps) {
   const { projects, categories, onSave, onDuplicate, onDelete, onClose } = props;
 
-  const isEdit  = props.mode === 'edit';
-  const initial = isEdit ? props.entry : null;
+  const isEdit    = props.mode === 'edit';
+  const initial   = isEdit ? props.entry : null;
+  const fromSlot  = props.mode === 'add' && !!props.fromSlot;
 
   const [description, setDescription]         = useState(initial?.description ?? '');
   const [startHour, setStartHour]             = useState(initial?.startHour ?? (props.mode === 'add' ? props.startHour : 9));
@@ -79,12 +81,14 @@ export function EntryModal(props: EntryModalProps) {
             <div className="modal__static">{date}</div>
           </div>
 
-          <div className="modal__field">
-            <label className="modal__label">Hour</label>
-            <select className="modal__select" value={startHour} onChange={e => setStartHour(Number(e.target.value))}>
-              {HOUR_SLOTS.map(h => <option key={h} value={h}>{formatHour(h)}</option>)}
-            </select>
-          </div>
+          {!fromSlot && (
+            <div className="modal__field">
+              <label className="modal__label">Hour</label>
+              <select className="modal__select" value={startHour} onChange={e => setStartHour(Number(e.target.value))}>
+                {HOUR_SLOTS.map(h => <option key={h} value={h}>{formatHour(h)}</option>)}
+              </select>
+            </div>
+          )}
 
           <div className="modal__field">
             <label className="modal__label">Description</label>

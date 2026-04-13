@@ -19,9 +19,13 @@ async function req<T>(path: string, method = 'GET', body?: unknown): Promise<T> 
 
 // ─── Categories ───────────────────────────────────────────────────────────────
 
-export const apiGetCategories  = () => req<CategoryDef[]>('/categories');
+export const apiGetCategories  = () =>
+  req<(Omit<CategoryDef, 'weeklyHours'> & { weekly_hours?: number })[]>('/categories')
+    .then(rows => rows.map(r => ({ ...r, weeklyHours: r.weekly_hours ?? 0 }) as CategoryDef));
 export const apiAddCategory    = (c: CategoryDef) =>
-  req('/categories', 'POST', { id: c.id, name: c.name, color: c.color });
+  req('/categories', 'POST', { id: c.id, name: c.name, color: c.color, weekly_hours: c.weeklyHours });
+export const apiUpdateCategory = (c: CategoryDef) =>
+  req(`/categories/${c.id}`, 'PUT', { name: c.name, color: c.color, weekly_hours: c.weeklyHours });
 export const apiDeleteCategory = (id: string) => req(`/categories/${id}`, 'DELETE');
 
 // ─── Projects ─────────────────────────────────────────────────────────────────

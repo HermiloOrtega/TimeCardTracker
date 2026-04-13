@@ -75,6 +75,30 @@
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  position: relative;
+}
+
+/* ── Now line (rendered inside today's day column) ── */
+.time-grid__now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #E53935;
+  z-index: 9;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.time-grid__now-dot {
+  position: absolute;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #E53935;
+  flex-shrink: 0;
 }
 
 .time-grid__body .time-grid__time-gutter {
