@@ -1,41 +1,40 @@
 # TimeCardTracker
 
-A personal time tracking tool built to replace notes, paper, and spreadsheets. Log your work hours across multiple projects and companies — visually, fast, and without friction.
+A time tracking tool for logging work hours across multiple projects and clients — visually, fast, and without friction.
 
 ---
 
 ## Why This Exists
 
-Keeping track of time across multiple projects and companies was always messy — sticky notes, spreadsheets, mental math at the end of the day. This tool was built to fix that in the simplest way possible: open it, click the hour you worked, type what you did, and move on.
+Keeping track of time across multiple projects was always messy — sticky notes, spreadsheets, mental math at the end of the day. This tool was built to fix that in the simplest way possible: open it, click the hour you worked, type what you did, and move on.
 
 No sign-in. No complicated setup. No subscriptions. Just a calendar where you track your time.
-
-**This started as a personal proof of concept** — a working prototype to validate the idea, refine the UX, and demonstrate the value of a dedicated time tracking module before investing in a larger integration. The goal is to showcase it as a standalone tool and, once approved, incorporate it as an additional module within internal business tools — bringing time tracking natively into the platforms where the work already happens.
-
-The foundation is solid and working. Future iterations will focus on deeper integrations and broader team use cases.
 
 ---
 
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [How to Use](#how-to-use)
-3. [UI Layout](#ui-layout)
-4. [Calendar Views](#calendar-views)
-5. [Appearance & Settings](#appearance--settings)
-6. [Analytics](#analytics)
-7. [Export to Excel](#export-to-excel)
-8. [Data Storage](#data-storage)
-9. [Tech Stack](#tech-stack)
-10. [Architecture Overview](#architecture-overview)
-11. [Project Structure](#project-structure)
-12. [Data Model](#data-model)
-13. [Component Reference](#component-reference)
-14. [State & Data Flow](#state--data-flow)
-15. [Styling System](#styling-system)
-16. [Notes & Limitations](#notes--limitations)
-17. [Security](#security)
-18. [Roadmap](#roadmap)
+2. [Demo Data — Example Scenarios](#demo-data--example-scenarios)
+3. [Screenshots](#screenshots)
+4. [How to Use](#how-to-use)
+5. [UI Layout](#ui-layout)
+6. [Calendar Views](#calendar-views)
+7. [Time Slot Range](#time-slot-range)
+8. [Appearance & Settings](#appearance--settings)
+9. [Analytics](#analytics)
+10. [Export to Excel](#export-to-excel)
+11. [Data Storage](#data-storage)
+12. [Tech Stack](#tech-stack)
+13. [Architecture Overview](#architecture-overview)
+14. [Project Structure](#project-structure)
+15. [Data Model](#data-model)
+16. [Component Reference](#component-reference)
+17. [State & Data Flow](#state--data-flow)
+18. [Styling System](#styling-system)
+19. [Notes & Limitations](#notes--limitations)
+20. [Security](#security)
+21. [Roadmap](#roadmap)
 
 ---
 
@@ -67,7 +66,7 @@ Or open `docs/database.sql` in MySQL Workbench and click Execute.
 
 ### Configure environment
 
-Fill in your MySQL credentials in `.env.local`:
+Copy `.env` to `.env.local` and fill in your MySQL credentials:
 
 ```
 DB_HOST=127.0.0.1
@@ -95,6 +94,143 @@ App opens at `http://localhost:5173`. The `--host` flag also makes it accessible
 
 ---
 
+## Demo Data — Example Scenarios
+
+The `docs/` folder includes ready-to-run SQL scripts that populate the database with realistic sample data for three different use cases. Each script is self-contained, safe to re-run, and designed to demonstrate the full feature set of the tool.
+
+### Loading demo data
+
+Run the schema first (once), then run any demo script:
+
+```bash
+# Initialize schema
+mysql -u root -p < docs/database.sql
+
+# Then load ONE of the demo scenarios:
+mysql -u root -p timecardtracker < docs/demo_software_engineer.sql
+mysql -u root -p timecardtracker < docs/demo_accountant.sql
+mysql -u root -p timecardtracker < docs/demo_estimator.sql
+```
+
+> Each demo script cleans up its own previously inserted data on re-run, so you can switch between scenarios freely without conflicts.
+
+---
+
+### Scenario 1 — Full-Stack Software Engineer
+
+**File:** `docs/demo_software_engineer.sql`
+
+A software engineer working across 5 active software projects. Categories represent the phases of the Software Development Lifecycle (SDLC).
+
+**Categories:**
+
+| Category | Color | Description |
+|---|---|---|
+| Planning & Architecture | Purple | System design, sprint planning, roadmapping |
+| Development | Green | Feature coding, bug fixes, code reviews |
+| DevOps & Infrastructure | Amber | CI/CD, cloud provisioning, Docker |
+| QA & Testing | Blue | Unit tests, integration tests, regression |
+| Meetings & Admin | Slate | Standups, email, documentation |
+
+**Projects:**
+
+| Project | Focus |
+|---|---|
+| E-Commerce Platform | Full-stack rebuild of a retail web application |
+| Customer Portal API | REST API with JWT auth and role-based access |
+| CI/CD & Cloud Infra | GitHub Actions, Terraform, AWS provisioning |
+| Mobile App MVP | React Native app with offline sync |
+| Analytics Dashboard | D3.js data visualization and reporting tool |
+
+**Sample week:** Mon–Fri, 2026-04-07 to 2026-04-11. Includes todos linked to projects.
+
+---
+
+### Scenario 2 — Accountant / Bookkeeper
+
+**File:** `docs/demo_accountant.sql`
+
+An independent accountant tracking billable hours across 3 client engagements. Categories represent the accounting service types delivered.
+
+**Categories:**
+
+| Category | Color | Description |
+|---|---|---|
+| Bookkeeping | Green | Transaction entry, bank reconciliation, payroll |
+| Tax Preparation | Blue | Tax review, filings, deduction analysis |
+| Financial Reports | Amber | P&L, cash flow, investor summaries |
+| Client Meetings | Purple | Review calls, onboarding, quarterly meetings |
+| Administration | Slate | Invoicing, engagement letters, scheduling |
+
+**Projects (Clients):**
+
+| Client | Profile |
+|---|---|
+| Maple Grove Bakery | Small retail business — bookkeeping, payroll, sales tax |
+| Sunrise Real Estate Group | Mid-size company — property accounting, investor reports |
+| TechFlow Startup Inc. | Early-stage startup — catch-up books, due diligence, tax |
+
+**Sample week:** Mon–Fri, 2026-04-07 to 2026-04-11. Includes multi-project todos (e.g., quarterly estimated tax filed for all 3 clients in one entry).
+
+---
+
+### Scenario 3 — Construction Estimator
+
+**File:** `docs/demo_estimator.sql`
+
+A civil construction estimator tracking time across 5 active bids. Categories represent the phases of the construction bid lifecycle, from solicitation through post-bid negotiation.
+
+**Categories:**
+
+| Category | Color | Description |
+|---|---|---|
+| Bid Solicitation & Review | Red | Reviewing RFPs, addenda, and go/no-go decisions |
+| Site Assessment & Takeoffs | Orange | Site visits, quantity takeoffs, drawings review |
+| Subcontractor Coordination | Yellow | Scope packages, sub outreach, quote comparison |
+| Estimate Preparation | Green | Cost spreadsheets, markup, GC estimate builds |
+| Bid Submission & Review | Blue | Bid form prep, internal reviews, submission |
+| Post-Bid & Negotiation | Purple | Debrief calls, scope clarifications, leveling |
+| Admin & Coordination | Slate | Bid log, scheduling, win/loss tracking |
+
+**Projects (Active Bids):**
+
+| Bid | Scope |
+|---|---|
+| Riverside Commercial Complex Ph.2 | Commercial building — structural, MEP, envelope |
+| Hwy 45 Bridge Rehabilitation | Transportation infrastructure — deck, steel, MOT |
+| Municipal Water Treatment Plant | Public works — civil, process piping, E&I |
+| Downtown Mixed-Use Development | Urban development — demo, earthwork, vertical build |
+| Industrial Warehouse Facility | Tilt-up warehouse — earthwork, slab, steel framing |
+
+**Sample week:** Mon–Fri, 2026-04-07 to 2026-04-11. Includes a bid submission (Warehouse, Friday) and a post-bid debrief (Downtown). Todos reflect outstanding deliverables per bid.
+
+---
+
+## Screenshots
+
+> Screenshots below show the tool in action for each demo scenario.
+
+### Scenario 1 — Full-Stack Software Engineer
+
+<!-- Add screenshot here -->
+*Coming soon*
+
+---
+
+### Scenario 2 — Accountant / Bookkeeper
+
+<!-- Add screenshot here -->
+*Coming soon*
+
+---
+
+### Scenario 3 — Construction Estimator
+
+<!-- Add screenshot here -->
+*Coming soon*
+
+---
+
 ## How to Use
 
 ### Step 1 — Set Up Categories and Projects
@@ -107,7 +243,7 @@ Before logging time, define your **categories** and **projects**:
 
 Categories provide the color identity; projects appear as labeled entries on the calendar.
 
-You can have as many categories and projects as you need — the tool is designed to handle multiple companies and clients side by side.
+You can have as many categories and projects as you need — the tool is designed to handle multiple clients and workstreams side by side.
 
 ---
 
@@ -361,7 +497,7 @@ MySQL
 
 - **No global state store.** All state lives in `App.tsx` via hooks, passed down as props.
 - **One hour per entry.** Keeps the data model simple and the UI predictable.
-- **No auth.** Personal tool — no login, no sessions, no user table.
+- **No auth.** Single-user tool — no login, no sessions, no user table.
 - **HTML5 Drag and Drop.** For todo→calendar and entry→slot moves.
 - **React Portals for modals.** Rendered into `document.body` to escape `overflow: hidden` containers.
 - **Flex-based proportional layout.** Grid fills 100% viewport height, each slot takes `flex: 1`.
@@ -376,11 +512,15 @@ TimeCardTracker/
 ├── vite.config.ts
 ├── package.json
 ├── .env.local                   Local DB credentials (git-ignored)
-├── .env.production              Template — real values set on the hosting provider
+├── .env                         Template — real values set on the hosting provider
 │
 ├── docs/
 │   ├── database.sql             MySQL schema — run once to init tables
-│   └── backend-setup.md        Full local + production setup guide
+│   ├── seed_data.sql            Generic sample data — basic multi-project setup
+│   ├── demo_software_engineer.sql  Demo: full-stack software engineer
+│   ├── demo_accountant.sql         Demo: accountant with 3 clients
+│   ├── demo_estimator.sql          Demo: construction estimator across 5 bids
+│   └── backend-setup.md         Full local + production setup guide
 │
 ├── server/
 │   ├── index.js                 Express entry point
@@ -543,28 +683,26 @@ Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`.
 
 - No secrets in the codebase — credentials are environment variables only
 - `.env.local` is git-ignored — never committed
-- `.env.production` in the repo is a placeholder template only — real values are set on the hosting provider's environment panel
+- `.env` in the repo is a placeholder template only — real values are set on the hosting provider's environment panel
 - No external API calls at runtime
-- No authentication — intentional for a personal local tool
+- No authentication — intentional for a single-user local tool
 - All user input rendered via React's default escaping — no `dangerouslySetInnerHTML`
 
 ---
 
 ## Roadmap
 
-This tool does what it was built for. The next phase is integration — embedding time tracking as a native module within internal business tools, eliminating the need to switch between systems.
-
 Planned improvements:
 
-- Integration with internal tools as an embedded module
 - Google Calendar / Outlook sync
 - Billing and invoicing export
 - Weekly summary reports
 - Mobile-friendly layout
 - Role-based access for team use
+- Multi-user support
 
 ---
 
 ## License
 
-Private / personal use.
+MIT
