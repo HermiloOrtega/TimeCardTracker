@@ -20,9 +20,21 @@
   color: var(--color-text-primary);
 }
 
+.time-dist__work-summary {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 4px;
+}
+
+.time-dist__work-summary--over {
+  color: #E53935;
+}
+
 .time-dist__week-label {
   font-size: 11px;
   color: var(--color-text-secondary);
+  margin-left: auto;
 }
 
 .time-dist__rows {

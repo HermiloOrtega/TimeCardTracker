@@ -10,21 +10,21 @@ export function useCategories() {
     apiGetCategories().then(setCategoriesState).catch(console.error);
   }, []);
 
-  async function addCategory(name: string, color: string, weeklyHours = 0): Promise<void> {
+  async function addCategory(name: string, color: string, weeklyHours = 0, isPersonal = false): Promise<void> {
     const trimmed = name.trim();
     const isDuplicate = categories.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
     if (!trimmed || isDuplicate) return;
-    const cat: CategoryDef = { id: generateId(), name: trimmed, color, weeklyHours };
+    const cat: CategoryDef = { id: generateId(), name: trimmed, color, weeklyHours, isPersonal };
     await apiAddCategory(cat);
     setCategoriesState(prev => [...prev, cat]);
   }
 
-  async function updateCategory(id: string, name: string, color: string, weeklyHours: number): Promise<void> {
+  async function updateCategory(id: string, name: string, color: string, weeklyHours: number, isPersonal = false): Promise<void> {
     const trimmed = name.trim();
     if (!trimmed) return;
     const cat = categories.find(c => c.id === id);
     if (!cat) return;
-    const updated: CategoryDef = { ...cat, name: trimmed, color, weeklyHours };
+    const updated: CategoryDef = { ...cat, name: trimmed, color, weeklyHours, isPersonal };
     await apiUpdateCategory(updated);
     setCategoriesState(prev => prev.map(c => c.id === id ? updated : c));
   }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactDOM from 'react-dom';
 import type { TodoItem, Theme } from '../../models/types';
 import './TodoSidebar.css';
 
@@ -37,7 +38,7 @@ export function TodoSidebar({
   const [newNote,      setNewNote]      = useState('');
   const [showAddNote,  setShowAddNote]  = useState(false);
   const [editing,      setEditing]      = useState<EditState | null>(null);
-  const [collapsed,    setCollapsed]    = useState(false);
+  const [collapsed,    setCollapsed]    = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   function handleAdd() {
@@ -240,25 +241,34 @@ export function TodoSidebar({
         </button>
 
         {/* Settings */}
-        <div className="todo-sidebar__settings-wrap">
-          {settingsOpen && !collapsed && (
-            <div className="todo-sidebar__settings-popup">
-              <p className="todo-sidebar__settings-title">Appearance</p>
-              <button className="todo-sidebar__theme-btn" onClick={onToggleTheme}>
+        <button
+          className={`todo-sidebar__bottom-btn${settingsOpen ? ' todo-sidebar__bottom-btn--active' : ''}`}
+          onClick={() => setSettingsOpen(v => !v)}
+          title="Settings"
+        >
+          <span className="todo-sidebar__bottom-icon">⚙️</span>
+          {!collapsed && <span className="todo-sidebar__bottom-label">Settings</span>}
+        </button>
+      </div>
+
+      {/* ── Settings modal (centered) ── */}
+      {settingsOpen && ReactDOM.createPortal(
+        <div className="settings-modal-overlay" onClick={() => setSettingsOpen(false)}>
+          <div className="settings-modal" onClick={e => e.stopPropagation()}>
+            <div className="settings-modal__header">
+              <h2 className="settings-modal__title">Settings</h2>
+              <button className="settings-modal__close" onClick={() => setSettingsOpen(false)} aria-label="Close">&#x2715;</button>
+            </div>
+            <div className="settings-modal__body">
+              <p className="settings-modal__section-title">Appearance</p>
+              <button className="settings-modal__theme-btn" onClick={onToggleTheme}>
                 {theme === 'light' ? '🌙  Dark mode' : '☀️  Light mode'}
               </button>
             </div>
-          )}
-          <button
-            className={`todo-sidebar__bottom-btn${settingsOpen ? ' todo-sidebar__bottom-btn--active' : ''}`}
-            onClick={() => setSettingsOpen(v => !v)}
-            title="Settings"
-          >
-            <span className="todo-sidebar__bottom-icon">⚙️</span>
-            {!collapsed && <span className="todo-sidebar__bottom-label">Settings</span>}
-          </button>
-        </div>
-      </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </aside>
   );
 }

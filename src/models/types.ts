@@ -15,6 +15,7 @@ export interface CategoryDef {
   name: string;
   color: string;       // hex e.g. '#4CAF50'
   weeklyHours: number; // target hours per week (default 0)
+  isPersonal?: boolean; // if true, excluded from work-hours summary
 }
 
 export interface Project {

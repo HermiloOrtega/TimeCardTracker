@@ -423,44 +423,87 @@
   text-overflow: ellipsis;
 }
 
-/* ── Settings popup ── */
-.todo-sidebar__settings-wrap {
-  position: relative;
+/* ── Settings modal ── */
+.settings-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.todo-sidebar__settings-popup {
+.settings-modal {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 4px;
-  box-shadow: 0 -2px 12px rgba(0,0,0,0.12);
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
 
-.todo-sidebar__settings-title {
+.settings-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings-modal__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.settings-modal__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.settings-modal__close:hover {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+
+.settings-modal__body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-modal__section-title {
   font-size: 11px;
   font-weight: 600;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 6px;
+  margin: 0;
 }
 
-.todo-sidebar__theme-btn {
+.settings-modal__theme-btn {
   width: 100%;
-  padding: 7px 10px;
+  padding: 9px 12px;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--color-bg);
   color: var(--color-text-primary);
   font-size: 13px;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s;
-  white-space: nowrap;
 }
 
-.todo-sidebar__theme-btn:hover {
+.settings-modal__theme-btn:hover {
   background: var(--color-hover);
 }
 

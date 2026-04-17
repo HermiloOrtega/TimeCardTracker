@@ -35,8 +35,8 @@ interface CalendarShellProps {
   onDeleteEntry: (id: string) => void;
   onAddProject: (name: string, categoryId: string) => void;
   onDeleteProject: (id: string) => void;
-  onAddCategory: (name: string, color: string, weeklyHours: number) => void;
-  onUpdateCategory: (id: string, name: string, color: string, weeklyHours: number) => void;
+  onAddCategory: (name: string, color: string, weeklyHours: number, isPersonal?: boolean) => void;
+  onUpdateCategory: (id: string, name: string, color: string, weeklyHours: number, isPersonal?: boolean) => void;
   onDeleteCategory: (id: string) => void;
   onSetTheme: (theme: Theme) => void;
   onSetTimeRange: (range: TimeRange) => void;

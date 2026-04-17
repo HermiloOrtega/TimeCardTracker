@@ -99,6 +99,19 @@ export function TimeDistribution({ entries, projects, categories, days }: TimeDi
     [categoryHours]
   );
 
+  // Work-only summary: exclude categories marked as personal
+  const workTarget = useMemo(
+    () => categories.filter(c => !c.isPersonal).reduce((s, c) => s + (Number(c.weeklyHours) || 0), 0),
+    [categories]
+  );
+
+  const workLogged = useMemo(() => {
+    const personalIds = new Set(categories.filter(c => c.isPersonal).map(c => c.id));
+    return Array.from(categoryHours.entries())
+      .filter(([id]) => !personalIds.has(id))
+      .reduce((s, [, v]) => s + v, 0);
+  }, [categories, categoryHours]);
+
   const weekLabel = useMemo(() => {
     if (days.length === 0) return '';
     const first = days[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -106,10 +119,21 @@ export function TimeDistribution({ entries, projects, categories, days }: TimeDi
     return days.length === 1 ? first : `${first} – ${last}`;
   }, [days]);
 
+  const workSummary = useMemo(() => {
+    if (!workTarget || isNaN(workTarget) || workTarget <= 0) return null;
+    const isOver = workLogged > workTarget;
+    return { label: `${formatHours(workLogged)} / ${formatHours(workTarget)}`, isOver };
+  }, [workLogged, workTarget]);
+
   return (
     <div className="time-dist">
       <div className="time-dist__header">
         <span className="time-dist__title">Time Distribution</span>
+        {workSummary && (
+          <span className={`time-dist__work-summary${workSummary.isOver ? ' time-dist__work-summary--over' : ''}`}>
+            ({workSummary.label})
+          </span>
+        )}
         <span className="time-dist__week-label">{weekLabel}</span>
       </div>
 

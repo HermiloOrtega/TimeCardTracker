@@ -7,8 +7,8 @@ import './CategoryModal.css';
 interface CategoryModalProps {
   categories: CategoryDef[];
   projects: Project[];
-  onAdd: (name: string, color: string, weeklyHours: number) => void;
-  onUpdate: (id: string, name: string, color: string, weeklyHours: number) => void;
+  onAdd: (name: string, color: string, weeklyHours: number, isPersonal: boolean) => void;
+  onUpdate: (id: string, name: string, color: string, weeklyHours: number, isPersonal: boolean) => void;
   onDelete: (id: string) => void;
   onClose: () => void;
 }
@@ -25,14 +25,16 @@ export function CategoryModal({
   const [name, setName]               = useState('');
   const [color, setColor]             = useState(PRESET_COLORS[5]);
   const [weeklyHours, setWeeklyHours] = useState(0);
+  const [isPersonal, setIsPersonal]   = useState(false);
   const [error, setError]             = useState('');
 
   // Edit state
-  const [editingId, setEditingId]           = useState<string | null>(null);
-  const [editName, setEditName]             = useState('');
-  const [editColor, setEditColor]           = useState('');
-  const [editWeeklyHours, setEditWeeklyHours] = useState(0);
-  const [editError, setEditError]           = useState('');
+  const [editingId, setEditingId]               = useState<string | null>(null);
+  const [editName, setEditName]                 = useState('');
+  const [editColor, setEditColor]               = useState('');
+  const [editWeeklyHours, setEditWeeklyHours]   = useState(0);
+  const [editIsPersonal, setEditIsPersonal]     = useState(false);
+  const [editError, setEditError]               = useState('');
 
   function handleAdd() {
     const trimmed = name.trim();
@@ -40,9 +42,10 @@ export function CategoryModal({
     const duplicate = categories.some(c => c.name.toLowerCase() === trimmed.toLowerCase());
     if (duplicate) { setError('A category with this name already exists.'); return; }
     if (weeklyHours < 0) { setError('Hours must be 0 or more.'); return; }
-    onAdd(trimmed, color, weeklyHours);
+    onAdd(trimmed, color, weeklyHours, isPersonal);
     setName('');
     setWeeklyHours(0);
+    setIsPersonal(false);
     setColor(PRESET_COLORS[5]);
     setError('');
   }
@@ -52,6 +55,7 @@ export function CategoryModal({
     setEditName(cat.name);
     setEditColor(cat.color);
     setEditWeeklyHours(cat.weeklyHours);
+    setEditIsPersonal(cat.isPersonal ?? false);
     setEditError('');
   }
 
@@ -62,7 +66,7 @@ export function CategoryModal({
     const duplicate = categories.some(c => c.id !== editingId && c.name.toLowerCase() === trimmed.toLowerCase());
     if (duplicate) { setEditError('A category with this name already exists.'); return; }
     if (editWeeklyHours < 0) { setEditError('Hours must be 0 or more.'); return; }
-    onUpdate(editingId, trimmed, editColor, editWeeklyHours);
+    onUpdate(editingId, trimmed, editColor, editWeeklyHours, editIsPersonal);
     setEditingId(null);
     setEditError('');
   }
@@ -115,6 +119,17 @@ export function CategoryModal({
                 value={weeklyHours}
                 onChange={e => setWeeklyHours(Number(e.target.value))}
               />
+            </div>
+
+            <div className="modal__field category-modal__personal-field">
+              <label className="category-modal__personal-label">
+                <input
+                  type="checkbox"
+                  checked={isPersonal}
+                  onChange={e => setIsPersonal(e.target.checked)}
+                />
+                Personal time (excluded from work hours summary)
+              </label>
             </div>
 
             <div className="modal__field">
@@ -179,6 +194,14 @@ export function CategoryModal({
                             />
                           ))}
                         </div>
+                        <label className="category-modal__personal-label">
+                          <input
+                            type="checkbox"
+                            checked={editIsPersonal}
+                            onChange={e => setEditIsPersonal(e.target.checked)}
+                          />
+                          Personal time
+                        </label>
                         {editError && <div className="modal__error">{editError}</div>}
                         <div className="category-modal__edit-actions">
                           <button className="modal__btn modal__btn--primary category-modal__save-btn" onClick={handleSaveEdit}>Save</button>
@@ -193,6 +216,9 @@ export function CategoryModal({
                       <span className="modal__project-dot" style={{ background: cat.color }} />
                       <span className="project-modal__item-name">{cat.name}</span>
                       <span className="project-modal__item-cat">{cat.weeklyHours}h/wk</span>
+                      {cat.isPersonal && (
+                        <span className="category-modal__personal-badge">personal</span>
+                      )}
                       {usedBy > 0 && (
                         <span className="project-modal__item-cat">{usedBy} proj</span>
                       )}
