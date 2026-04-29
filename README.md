@@ -23,18 +23,21 @@ No sign-in. No complicated setup. No subscriptions. Just a calendar where you tr
 7. [Time Slot Range](#time-slot-range)
 8. [Appearance & Settings](#appearance--settings)
 9. [Analytics](#analytics)
-10. [Export to Excel](#export-to-excel)
-11. [Data Storage](#data-storage)
-12. [Tech Stack](#tech-stack)
-13. [Architecture Overview](#architecture-overview)
-14. [Project Structure](#project-structure)
-15. [Data Model](#data-model)
-16. [Component Reference](#component-reference)
-17. [State & Data Flow](#state--data-flow)
-18. [Styling System](#styling-system)
-19. [Notes & Limitations](#notes--limitations)
-20. [Security](#security)
-21. [Roadmap](#roadmap)
+10. [Time Distribution](#time-distribution)
+11. [Export to Excel](#export-to-excel)
+12. [Data Storage](#data-storage)
+13. [Tech Stack](#tech-stack)
+14. [Architecture Overview](#architecture-overview)
+15. [Project Structure](#project-structure)
+16. [API Reference](#api-reference)
+17. [Data Model](#data-model)
+18. [Component Reference](#component-reference)
+19. [State & Data Flow](#state--data-flow)
+20. [Styling System](#styling-system)
+21. [Migrating from localStorage](#migrating-from-localstorage)
+22. [Notes & Limitations](#notes--limitations)
+23. [Security](#security)
+24. [Roadmap](#roadmap)
 
 ---
 
@@ -64,9 +67,11 @@ mysql -u root -p < docs/database.sql
 
 Or open `docs/database.sql` in MySQL Workbench and click Execute.
 
+This creates the `timecardtracker` database with all required tables and seeds the default settings row.
+
 ### Configure environment
 
-Copy `.env` to `.env.local` and fill in your MySQL credentials:
+Create `.env.local` in the project root with your MySQL credentials:
 
 ```
 DB_HOST=127.0.0.1
@@ -83,14 +88,16 @@ Production credentials are set as environment variables on the server — never 
 Open **two terminals**:
 
 ```bash
-# Terminal 1 — Frontend (Vite)
-npm run dev
-
-# Terminal 2 — Backend (Express + MySQL)
+# Terminal 1 — Backend (Express + MySQL)
 npm run dev:server
+
+# Terminal 2 — Frontend (Vite)
+npm run dev
 ```
 
 App opens at `http://localhost:5173`. The `--host` flag also makes it accessible from other devices on your local network.
+
+> The backend must be running before the frontend loads — all data calls go to `/api`.
 
 ---
 
@@ -233,21 +240,35 @@ A civil construction estimator tracking time across 5 active bids. Categories re
 
 ## How to Use
 
-### Step 1 — Set Up Categories and Projects
+### Step 1 — Create Categories
 
-Before logging time, define your **categories** and **projects**:
+Before logging time, define your categories:
 
-1. Click **+ Projects** in the top toolbar.
-2. Create a **Category** — give it a name and pick a color (e.g., "Client A" → blue).
-3. Add a **Project** under that category (e.g., "Website Redesign").
+1. Click **+ Category** in the top toolbar.
+2. Fill in:
+   - **Name** — e.g., "Client A" or "Development"
+   - **Weekly Hours Target** — optional goal (e.g., `40`). Drives the Time Distribution progress bars.
+   - **Personal time** — check this to exclude the category from the work-hours summary.
+   - **Color** — pick from 12 preset colors.
+3. Click **Add Category**.
 
-Categories provide the color identity; projects appear as labeled entries on the calendar.
-
-You can have as many categories and projects as you need — the tool is designed to handle multiple clients and workstreams side by side.
+You can edit or delete categories at any time from the same modal. A category cannot be deleted while it has projects assigned to it.
 
 ---
 
-### Step 2 — Log Time
+### Step 2 — Create Projects
+
+Projects live under categories and appear on calendar entries.
+
+1. Click **+ Projects** in the top toolbar.
+2. Select a **Category** and enter a **Project name**.
+3. Click **Add Project**.
+
+You can have as many categories and projects as needed. When a project is deleted, all references to it are removed from existing time entries automatically.
+
+---
+
+### Step 3 — Log Time
 
 Each calendar entry represents **exactly one hour** of work.
 
@@ -259,45 +280,58 @@ Each calendar entry represents **exactly one hour** of work.
 | + Task button | Click **+ Task** in the top toolbar (defaults to current hour, today) |
 
 The entry form asks for:
-- **Hour** — which hour you worked (e.g., 9 AM = 9:00–10:00)
-- **Description** — what you worked on
-- **Projects** — optional — assign to one or more projects
+- **Date** — shown as read-only when clicking a slot
+- **Hour** — which hour you worked (selectable when using the toolbar button)
+- **Description** — what you worked on (required)
+- **Projects** — optional — assign to one or more projects via checkboxes
 
-Entries appear as color-coded strips inside their hour slot. Multiple entries in the same slot stack vertically.
+Entries appear as color-coded strips inside their hour slot, colored by their assigned category. Multiple entries in the same slot stack vertically and split the hour equally between them in the Time Distribution panel.
 
 ---
 
-### Step 3 — Edit or Delete Entries
+### Step 4 — Edit or Delete Entries
 
 Click any entry on the calendar to open the edit form:
 
 - Change the hour, description, or project assignments → **Save**
-- **Duplicate** — creates a copy (useful for recurring tasks)
+- **Duplicate** — creates a copy of the entry at the same time slot (useful for recurring tasks)
 - **Delete** — removes the entry permanently
 
 ---
 
-### Step 4 — Move Entries by Dragging
+### Step 5 — Move Entries by Dragging
 
 Drag any calendar entry to a different slot:
 
 1. Grab the entry and drop it on a new hour slot (same day or another day)
 2. A confirmation dialog appears before the move is applied
+3. The entry keeps its original duration
 
 ---
 
-### Step 5 — Use the To-Do Sidebar
+### Step 6 — Copy Last Week
 
-The **To-Do panel** (left side) is a holding area for tasks you plan to schedule.
+Click **Copy last week** in the top toolbar to duplicate the previous week's entries into the current view:
+
+- Copies all entries from the 7 days prior to the currently visible days
+- Warns you if the current week already has entries (duplicates may be created)
+- Useful for recurring weekly schedules
+
+---
+
+### Step 7 — Use the To-Do Sidebar
+
+The **To-Do panel** (left side) is a holding area for tasks you plan to schedule. It starts collapsed — click **›** to expand it.
 
 **Adding tasks:**
-- Type a title → press **Enter** or click **+**
+- Type a title in the input field → press **Enter** or click **+**
+- Click **≡** to add an optional note to the task before saving
 
 **Managing tasks:**
 
 | Button | Action |
 |---|---|
-| ✏️ | Edit title |
+| ✏️ | Edit title and note |
 | ⧉ | Duplicate |
 | ✕ | Delete |
 | Clear all | Wipe entire list (with confirmation) |
@@ -305,14 +339,14 @@ The **To-Do panel** (left side) is a holding area for tasks you plan to schedule
 **Scheduling a task:**
 1. Drag a task from the sidebar and drop it onto any calendar hour slot
 2. A dialog appears — confirm the hour and optionally assign a project
-3. Click **Add to Calendar** — the task moves from To-Do to the calendar
+3. Click **Add to Calendar** — the task moves from To-Do to the calendar as a time entry
 
 **Collapsing the sidebar:**
 Click **‹** to collapse the panel to a narrow icon strip. Click **›** to expand.
 
 ---
 
-### Step 6 — Navigate the Calendar
+### Step 8 — Navigate the Calendar
 
 **Top toolbar:**
 
@@ -332,47 +366,52 @@ Click **‹** to collapse the panel to a narrow icon strip. Click **›** to exp
 
 ---
 
-### Step 7 — Analytics
+### Step 9 — Analytics
 
-Click **📊 Analytics** at the bottom of the sidebar.
+Click **Analytics** at the bottom of the sidebar.
 
-Shows **hours worked per project per day** for a selected date range (default: last 7 days).
+Shows **hours worked per day** for a selected date range (default: last 7 days), broken down two ways:
 
 | View | Description |
 |---|---|
-| **Timeline** (default) | Heat-map grid — rows = projects, columns = days, cells = hours logged |
-| **Bar Chart** | Stacked bars — one per day, segmented by project |
+| **Timeline** (default) | Heat-map grid — rows = projects or categories, columns = days, cells = hours logged |
+| **Bar Chart** | Stacked bars — one per day, segmented by project or category |
+
+Both views display a **By Project** section and a **By Category** section side by side.
 
 ---
 
-### Step 8 — Export to Excel
+### Step 10 — Export to Excel
 
 Click the green **Export** button in the calendar sub-header:
 
-1. Select a date range
-2. Click **Export** — a `.xlsx` file downloads automatically
+1. Select a date range (default: last 28 days)
+2. The modal shows how many entries will be included
+3. Click **Download .xlsx** — a file downloads automatically
 
-Columns: Date, Start Time, End Time, Duration, Description, Projects, Category.
+Columns: Date, Start Time, End Time, Duration (hrs), Description, Projects, Category.
 
 ---
 
 ## UI Layout
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│  TOOLBAR: [Today] [‹] [›] [Date Label]          [+ Task] [+ Proj]  │
-├─────────────────┬──────────────────────────────────────────────────┤
-│                 │  SUBHEADER: [Time Range ▾] [Week|WorkWk|Day] [Export] │
-│  TO-DO          ├──────────────────────────────────────────────────┤
-│  SIDEBAR        │                                                  │
-│                 │  CALENDAR GRID                                   │
-│  [task list]    │  Mon   Tue   Wed   Thu   Fri                     │
-│                 │  ────────────────────────────                    │
-│  ───────────    │  8am  [entry]  [entry]                           │
-│  📊 Analytics   │  9am  [entry]                                    │
-│  ⚙️  Settings   │  10am                                            │
-│                 │  ...  (fills full viewport height)               │
-└─────────────────┴──────────────────────────────────────────────────┘
++--------------------------------------------------------------------+
+|  TOOLBAR: [Today] [<] [>] [Date Label]   [+Task][+Cat][+Proj][Copy]|
++------------------+-------------------------------------------------+
+|                  | SUBHEADER: [Time Range v] [Week|WorkWk|Day] [Export] |
+|  TO-DO           +-------------------------------------------------+
+|  SIDEBAR         |                                                 |
+|  (collapsed      |  CALENDAR GRID                                  |
+|   by default)    |  Mon   Tue   Wed   Thu   Fri                    |
+|                  |  -----------------------------------------------+
+|  [task list]     |  8am  [entry]  [entry]                          |
+|                  |  9am  [entry]                                   |
+|  ------------    |  10am                                           |
+|  Analytics       |  ...  (fills full viewport height)              |
+|  Settings        +-------------------------------------------------+
+|                  |  TIME DISTRIBUTION (progress bars per category) |
++------------------+-------------------------------------------------+
 ```
 
 ---
@@ -391,18 +430,19 @@ Columns: Date, Start Time, End Time, Duration, Description, Projects, Category.
 
 | Option | Hours visible |
 |---|---|
-| Work Hours | 9 am – 5 pm |
-| **Extended** (default) | 8 am – 6 pm |
-| Full Day | 6 am – 10 pm |
+| Work Hours | 9 am – 5 pm (8 slots) |
+| **Extended** (default) | 8 am – 6 pm (10 slots) |
+| Full Day | 6 am – 10 pm (16 slots) |
 
 ---
 
 ## Appearance & Settings
 
-Access via **⚙️ Settings** at the bottom of the sidebar.
+Access via **Settings** at the bottom of the sidebar (the gear icon).
 
-- **Light / Dark mode** — toggle anytime, saved automatically
+- **Light / Dark mode** — toggle anytime, saved automatically to the database
 - Theming uses CSS custom properties — no hardcoded colors anywhere
+- Settings open as a centered modal overlay
 
 ---
 
@@ -410,23 +450,67 @@ Access via **⚙️ Settings** at the bottom of the sidebar.
 
 ### Timeline View (default)
 
-Heat-map grid:
-- Rows = active projects in the date range
+Heat-map grid displayed in two sections:
+
+**By Project:**
+- Rows = projects active in the date range
 - Columns = each day
 - Cells = hours logged, with color intensity proportional to hours
 
+**By Category:**
+- Same layout, but rows are aggregated by category
+
 ### Bar Chart View
 
-Stacked vertical bars:
+Stacked vertical bars displayed in two sections:
+
+**By Project:**
 - Each bar = one day
 - Each segment = one project
 - Height = hours logged
+
+**By Category:**
+- Same layout, but segments are aggregated by category
+
+---
+
+## Time Distribution
+
+The **Time Distribution** panel appears at the bottom of the calendar (below the grid) in both Week and Day views. It shows how the currently visible week's hours are distributed across categories.
+
+### What it shows
+
+- One row per category that has a weekly hours target set **or** has hours logged this week
+- Categories with a `weeklyHours` target come first, then any others with logged hours
+- Each row shows: category color dot, category name, hours logged, target (if set), and a progress bar
+
+### Progress bar states
+
+| State | Condition |
+|---|---|
+| Normal | < 75% of target reached |
+| Warning (yellow) | >= 75% of target, not yet over |
+| Over (red) | Exceeded target — shows "+Xh over" |
+
+### Work summary
+
+If any category has a weekly hours target, a **work summary** appears in the header: `Xh / Yh`. This total excludes categories marked as **Personal time**.
+
+### Hour-splitting logic
+
+When multiple entries share the same date and start hour, the hour is split equally among them for distribution purposes (e.g., two entries at 9am = 0.5h each). Multi-hour entries count their full duration.
+
+### Totals footer
+
+If any category has a target, a footer row shows total logged vs total target across all categories.
 
 ---
 
 ## Export to Excel
 
 Uses **SheetJS (`xlsx`)** — the spreadsheet is generated entirely in the browser with no server call. Downloads as `.xlsx`.
+
+Default date range: last 28 days. The modal shows a live count of entries that will be included before you export.
 
 ---
 
@@ -436,13 +520,13 @@ Data is stored in **MySQL** (local or any hosting provider). The Express API (`/
 
 | Table | Contents |
 |---|---|
-| `time_entries` | All logged hours |
-| `projects` | Project definitions |
-| `categories` | Category definitions with colors |
-| `entry_projects` | Many-to-many: entries ↔ projects |
-| `todos` | To-Do task list |
-| `todo_projects` | Many-to-many: todos ↔ projects |
-| `settings` | Theme + time range preference |
+| `categories` | Category definitions — name, color, weekly_hours |
+| `projects` | Project definitions — name, category reference |
+| `time_entries` | All logged hours — date, start/end hour, description |
+| `entry_projects` | Many-to-many: entries to projects |
+| `todos` | To-Do task list — text, sort_order |
+| `todo_projects` | Many-to-many: todos to projects |
+| `settings` | Single-row table: theme, time_range, view_mode |
 
 See [docs/database.sql](docs/database.sql) for the full schema and [docs/backend-setup.md](docs/backend-setup.md) for setup and deployment instructions.
 
@@ -474,20 +558,21 @@ Browser (React SPA)
   └── Vite dev server / static build (dist/)
         ├── hooks/               Custom hooks — one per data domain
         ├── services/
-        │     └── apiService.ts  All fetch() calls to /api
+        │     ├── apiService.ts  All fetch() calls to /api
+        │     └── storageService.ts  Legacy localStorage helpers (kept for migration reference)
         ├── models/types.ts      Shared TypeScript interfaces
-        ├── utils/               Date math, colors, UUID
+        ├── utils/               Date math, colors, UUID, migration helper
         └── components/          All UI components
 
 Express Server (server/)
   ├── index.js                   Entry point — serves /api + /dist in production
-  ├── db.js                      MySQL connection pool
+  ├── db.js                      MySQL connection pool (reads from env vars)
   └── routes/
-        ├── entries.js
-        ├── projects.js
-        ├── categories.js
-        ├── todos.js
-        └── settings.js
+        ├── entries.js           GET/POST/PUT/DELETE /api/entries
+        ├── projects.js          GET/POST/DELETE /api/projects
+        ├── categories.js        GET/POST/PUT/DELETE /api/categories
+        ├── todos.js             GET/POST/PUT/DELETE /api/todos
+        └── settings.js          GET/PUT /api/settings
 
 MySQL
   └── timecardtracker database
@@ -501,6 +586,7 @@ MySQL
 - **HTML5 Drag and Drop.** For todo→calendar and entry→slot moves.
 - **React Portals for modals.** Rendered into `document.body` to escape `overflow: hidden` containers.
 - **Flex-based proportional layout.** Grid fills 100% viewport height, each slot takes `flex: 1`.
+- **Transactions for multi-table writes.** Entry and todo saves use MySQL transactions to keep `entry_projects` / `todo_projects` in sync.
 
 ---
 
@@ -512,7 +598,6 @@ TimeCardTracker/
 ├── vite.config.ts
 ├── package.json
 ├── .env.local                   Local DB credentials (git-ignored)
-├── .env                         Template — real values set on the hosting provider
 │
 ├── docs/
 │   ├── database.sql             MySQL schema — run once to init tables
@@ -536,19 +621,19 @@ TimeCardTracker/
     ├── App.tsx                  Root — hooks wiring, renders CalendarShell
     ├── models/types.ts          All TypeScript interfaces
     ├── services/
-    │   ├── apiService.ts        HTTP calls to /api
-    │   └── storageService.ts    Legacy localStorage helpers (kept for reference)
+    │   ├── apiService.ts        HTTP calls to /api (active)
+    │   └── storageService.ts    Legacy localStorage helpers (migration reference only)
     ├── hooks/
-    │   ├── useTimeEntries.ts
-    │   ├── useProjects.ts
-    │   ├── useCategories.ts
-    │   ├── useSettings.ts
-    │   └── useTodos.ts
+    │   ├── useTimeEntries.ts    entries[], addEntry, updateEntry, deleteEntry, scrubProjectId
+    │   ├── useProjects.ts       projects[], addProject, deleteProject
+    │   ├── useCategories.ts     categories[], addCategory, updateCategory, deleteCategory
+    │   ├── useSettings.ts       settings, setTheme, setTimeRange
+    │   └── useTodos.ts          todos[], addTodo, updateTodo, deleteTodo, duplicateTodo, clearAllTodos
     ├── utils/
-    │   ├── dateUtils.ts
-    │   ├── colorUtils.ts
-    │   ├── uuidUtils.ts
-    │   └── migrateToDb.ts       One-time localStorage → MySQL migration utility
+    │   ├── dateUtils.ts         Date math, hour slots, formatting helpers
+    │   ├── colorUtils.ts        Preset colors, category color lookup, multi-project color logic
+    │   ├── uuidUtils.ts         ID generation (nanoid)
+    │   └── migrateToDb.ts       One-time localStorage -> MySQL migration utility
     └── components/
         ├── Calendar/CalendarShell.tsx
         ├── CalendarSubHeader/
@@ -559,11 +644,64 @@ TimeCardTracker/
         ├── EntryModal/
         ├── ConfirmDropModal/
         ├── ProjectModal/
+        ├── CategoryModal/
         ├── ExportModal/
         ├── WeekView/
         ├── DailyView/
+        ├── TimeDistribution/
         └── Analytics/
+              ├── AnalyticsPanel.tsx
+              ├── BarChart.tsx
+              └── Timeline.tsx
 ```
+
+---
+
+## API Reference
+
+All endpoints are under `/api`. The frontend connects via `apiService.ts`.
+
+### Categories
+
+| Method | Path | Body / Query | Description |
+|---|---|---|---|
+| GET | `/api/categories` | — | List all categories |
+| POST | `/api/categories` | `{ id, name, color, weekly_hours }` | Create category |
+| PUT | `/api/categories/:id` | `{ name, color, weekly_hours }` | Update category |
+| DELETE | `/api/categories/:id` | — | Delete category |
+
+### Projects
+
+| Method | Path | Body / Query | Description |
+|---|---|---|---|
+| GET | `/api/projects` | — | List all projects |
+| POST | `/api/projects` | `{ id, name, color, category_id }` | Create project |
+| DELETE | `/api/projects/:id` | — | Delete project (cascades entry_projects) |
+
+### Time Entries
+
+| Method | Path | Body / Query | Description |
+|---|---|---|---|
+| GET | `/api/entries` | `?start=YYYY-MM-DD&end=YYYY-MM-DD` | List entries (optional date filter) |
+| POST | `/api/entries` | `{ id, date, startHour, endHour, description, projectIds[] }` | Create entry |
+| PUT | `/api/entries/:id` | `{ date, startHour, endHour, description, projectIds[] }` | Update entry |
+| DELETE | `/api/entries/:id` | — | Delete entry (cascades entry_projects) |
+
+### Todos
+
+| Method | Path | Body / Query | Description |
+|---|---|---|---|
+| GET | `/api/todos` | — | List all todos |
+| POST | `/api/todos` | `{ id, text, done, sort_order }` | Create todo |
+| PUT | `/api/todos/:id` | `{ text, done, sort_order }` | Update todo |
+| DELETE | `/api/todos/:id` | — | Delete todo |
+
+### Settings
+
+| Method | Path | Body | Description |
+|---|---|---|---|
+| GET | `/api/settings` | — | Get current settings (single row) |
+| PUT | `/api/settings` | `{ theme, time_range, view_mode }` | Save settings |
 
 ---
 
@@ -573,35 +711,39 @@ TimeCardTracker/
 interface TimeEntry {
   id: string;
   date: string;         // 'YYYY-MM-DD'
-  startHour: number;    // 0–23
+  startHour: number;    // integer 0–23
   endHour: number;      // always startHour + 1
   description: string;
-  projectIds: string[];
+  projectIds: string[]; // references Project.id[]
 }
 
 interface Project {
   id: string;
   name: string;
-  categoryId: string;
+  categoryId: string;   // references CategoryDef.id
 }
 
 interface CategoryDef {
   id: string;
   name: string;
   color: string;        // hex e.g. '#4285F4'
+  weeklyHours: number;  // target hours per week (0 = no target)
+  isPersonal?: boolean; // if true, excluded from work-hours summary
 }
 
 interface TodoItem {
   id: string;
   title: string;
-  note?: string;
-  createdAt: string;
+  note?: string;        // optional freeform note
+  createdAt: string;    // ISO timestamp
 }
 
 interface AppSettings {
   theme: 'light' | 'dark';
   timeRange: 'work' | 'extended' | 'full';
 }
+
+type ViewMode = 'week-with-weekends' | 'week-without-weekends' | 'daily';
 ```
 
 ---
@@ -610,17 +752,23 @@ interface AppSettings {
 
 | Component | Role |
 |---|---|
-| `CalendarShell` | Main orchestrator — owns view state, modal state, drag-drop handlers |
-| `CalendarSubHeader` | 3-column bar: time range select, view toggle, export button |
-| `Toolbar` | Top nav: Today, prev/next, date label, + Task, + Projects |
+| `CalendarShell` | Main orchestrator — owns view state, modal state, drag-drop handlers, copy-last-week logic |
+| `Toolbar` | Top nav: Today, prev/next, date label, + Task, + Category, + Projects, Copy last week |
+| `CalendarSubHeader` | 3-column bar: time range select, view toggle (Week / Work Week / Day), export button |
 | `TimeGrid` | Core grid — header row + day columns + hour slots |
-| `TimeEntryBlock` | Absolutely-positioned block for multi-hour entries |
-| `TodoSidebar` | To-Do panel + Analytics + Settings at bottom |
-| `EntryModal` | Add/edit entry form (React Portal) |
-| `ConfirmDropModal` | Confirm todo→calendar drop with hour + project selection |
-| `ProjectModal` | Manage categories and projects |
-| `ExportModal` | Date range picker → downloads .xlsx |
-| `AnalyticsPanel` | Date filter + tab switcher for Timeline / Bar Chart |
+| `TimeEntryBlock` | Absolutely-positioned block rendered inside each hour slot |
+| `WeekView` | Renders TimeGrid for a multi-day range |
+| `DailyView` | Renders TimeGrid for a single day |
+| `TimeDistribution` | Progress bar panel below the grid — category hours vs weekly target |
+| `TodoSidebar` | Collapsible left panel: To-Do list + Analytics button + Settings button |
+| `EntryModal` | Add/edit entry form (React Portal) — description, hour, project checkboxes |
+| `ConfirmDropModal` | Confirm todo→calendar drop with hour + project selection (React Portal) |
+| `CategoryModal` | Create / edit / delete categories with color picker and weekly hours target (React Portal) |
+| `ProjectModal` | Create / delete projects grouped under categories (React Portal) |
+| `ExportModal` | Date range picker → generates and downloads `.xlsx` in the browser (React Portal) |
+| `AnalyticsPanel` | Date filter + tab switcher (Timeline / Bar Chart) with By Project and By Category sections |
+| `Timeline` | Heat-map grid used inside AnalyticsPanel |
+| `BarChart` | Stacked bar chart used inside AnalyticsPanel |
 
 ---
 
@@ -628,21 +776,28 @@ interface AppSettings {
 
 ```
 App.tsx
-  ├── useTimeEntries()  → entries[], addEntry, updateEntry, deleteEntry
-  ├── useProjects()     → projects[], addProject, deleteProject
-  ├── useCategories()   → categories[], addCategory, deleteCategory
-  ├── useSettings()     → settings, setTheme, setTimeRange
-  └── useTodos()        → todos[], addTodo, updateTodo, deleteTodo, ...
-        │
+  ├── useTimeEntries()   -> entries[], addEntry, updateEntry, deleteEntry, scrubProjectId
+  ├── useProjects()      -> projects[], addProject, deleteProject
+  ├── useCategories()    -> categories[], addCategory, updateCategory, deleteCategory
+  ├── useSettings()      -> settings, setTheme, setTimeRange
+  └── useTodos()         -> todos[], addTodo, updateTodo, deleteTodo, duplicateTodo, clearAllTodos
+        |
         └── <CalendarShell> receives all as props
               ├── <Toolbar />
-              ├── <CalendarSubHeader />
               ├── <TodoSidebar />
-              └── <WeekView /> / <DailyView /> / <AnalyticsPanel />
-                    └── <TimeGrid />
+              ├── <CalendarSubHeader />          (calendar view only)
+              ├── <WeekView /> / <DailyView />   (calendar view)
+              │     └── <TimeGrid />
+              │           └── <TimeEntryBlock /> (per entry)
+              ├── <TimeDistribution />           (below the grid, calendar view)
+              └── <AnalyticsPanel />             (analytics view)
+                    ├── <Timeline />
+                    └── <BarChart />
 ```
 
 Data flows top-down as props. Mutations flow up as callbacks. No context or global store.
+
+Each hook fetches its data from the API on mount and keeps a local React state copy in sync. Writes go to the API first, then optimistically update local state.
 
 ---
 
@@ -663,7 +818,29 @@ All CSS is co-located with its component. Global variables are defined in `App.c
 }
 ```
 
-Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`.
+Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`, set by `useSettings` whenever the theme changes.
+
+**Color utilities (`colorUtils.ts`):**
+
+- `PRESET_COLORS` — 12 curated hex colors used in color pickers
+- `getCategoryColor(categoryId, categories)` — returns a category's hex color, or grey if not found
+- `deriveBlockColor(projectIds, projects, categories)` — returns the category color when all assigned projects share one category, or grey for mixed-category entries
+
+---
+
+## Migrating from localStorage
+
+If you previously ran an older version of this app that stored data in localStorage (keys: `tct_entries`, `tct_projects`, `tct_categories`, `tct_todos`, `tct_settings`), you can migrate that data to MySQL using the included utility.
+
+**From the browser console** (with the backend running):
+
+```javascript
+import('/src/utils/migrateToDb.ts').then(m => m.migrateToDb())
+```
+
+Or temporarily add `migrateToDb()` to a `useEffect` in `App.tsx`, run the app once, then remove it.
+
+The function logs progress to the console and migrates: categories, projects, time entries, todos, and settings.
 
 ---
 
@@ -674,8 +851,9 @@ Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`.
 | 1-hour granularity | Entries are whole hours — no half-hours or minutes |
 | No undo | Deletions are permanent |
 | No multi-user | Single-user tool — no accounts, no sharing |
-| No offline PWA | Requires a running server |
+| No offline mode | Requires a running backend server |
 | Export as backup | Use Excel export regularly if running without a persistent DB |
+| Entry drag confirm | Moving an entry uses `window.confirm` — cannot be dismissed with keyboard only |
 
 ---
 
@@ -683,10 +861,10 @@ Dark mode overrides all variables via `[data-theme="dark"]` on `<html>`.
 
 - No secrets in the codebase — credentials are environment variables only
 - `.env.local` is git-ignored — never committed
-- `.env` in the repo is a placeholder template only — real values are set on the hosting provider's environment panel
-- No external API calls at runtime
 - No authentication — intentional for a single-user local tool
+- No external API calls at runtime — all data stays local
 - All user input rendered via React's default escaping — no `dangerouslySetInnerHTML`
+- MySQL credentials read from env vars at runtime — never hardcoded
 
 ---
 
