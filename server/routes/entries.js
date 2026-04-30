@@ -10,10 +10,11 @@ router.get('/', async (req, res) => {
     SELECT e.*, GROUP_CONCAT(ep.project_id) AS project_ids
     FROM time_entries e
     LEFT JOIN entry_projects ep ON ep.entry_id = e.id
+    WHERE e.user_id = ?
   `;
-  const params = [];
+  const params = [req.userId];
   if (start && end) {
-    sql += ' WHERE e.date BETWEEN ? AND ?';
+    sql += ' AND e.date BETWEEN ? AND ?';
     params.push(start, end);
   }
   sql += ' GROUP BY e.id ORDER BY e.date, e.start_hour';
@@ -26,6 +27,7 @@ router.get('/', async (req, res) => {
       : r.date,
     projectIds: r.project_ids ? r.project_ids.split(',') : [],
     project_ids: undefined,
+    user_id: undefined,
   }));
   res.json(entries);
 });
@@ -37,8 +39,8 @@ router.post('/', async (req, res) => {
   try {
     await conn.beginTransaction();
     await conn.query(
-      'INSERT INTO time_entries (id, date, start_hour, end_hour, description) VALUES (?, ?, ?, ?, ?)',
-      [id, date, startHour, endHour, description]
+      'INSERT INTO time_entries (id, user_id, date, start_hour, end_hour, description) VALUES (?, ?, ?, ?, ?, ?)',
+      [id, req.userId, date, startHour, endHour, description]
     );
     for (const pid of projectIds) {
       await conn.query('INSERT INTO entry_projects (entry_id, project_id) VALUES (?, ?)', [id, pid]);
@@ -60,8 +62,8 @@ router.put('/:id', async (req, res) => {
   try {
     await conn.beginTransaction();
     await conn.query(
-      'UPDATE time_entries SET date=?, start_hour=?, end_hour=?, description=? WHERE id=?',
-      [date, startHour, endHour, description, req.params.id]
+      'UPDATE time_entries SET date=?, start_hour=?, end_hour=?, description=? WHERE id=? AND user_id=?',
+      [date, startHour, endHour, description, req.params.id, req.userId]
     );
     await conn.query('DELETE FROM entry_projects WHERE entry_id = ?', [req.params.id]);
     for (const pid of projectIds) {
@@ -79,7 +81,7 @@ router.put('/:id', async (req, res) => {
 
 // DELETE /api/entries/:id
 router.delete('/:id', async (req, res) => {
-  await pool.query('DELETE FROM time_entries WHERE id = ?', [req.params.id]);
+  await pool.query('DELETE FROM time_entries WHERE id = ? AND user_id = ?', [req.params.id, req.userId]);
   res.json({ ok: true });
 });
 

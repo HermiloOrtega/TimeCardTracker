@@ -11,14 +11,28 @@ CREATE DATABASE IF NOT EXISTS timecardtracker
 USE timecardtracker;
 
 -- ------------------------------------------------------------
+-- Users
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+  id            INT           NOT NULL AUTO_INCREMENT,
+  username      VARCHAR(100)  NOT NULL UNIQUE,
+  password_hash VARCHAR(255)  NOT NULL,
+  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ------------------------------------------------------------
 -- Categories
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS categories (
   id           VARCHAR(36)   NOT NULL,
+  user_id      INT           NULL,
   name         VARCHAR(255)  NOT NULL,
   color        VARCHAR(20)   NOT NULL,
   weekly_hours DECIMAL(5,2)  NOT NULL DEFAULT 0.00,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT fk_cat_user
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
@@ -26,13 +40,15 @@ CREATE TABLE IF NOT EXISTS categories (
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS projects (
   id          VARCHAR(36)  NOT NULL,
+  user_id     INT          NULL,
   name        VARCHAR(255) NOT NULL,
   color       VARCHAR(20)  NULL,
   category_id VARCHAR(36)  NULL,
   PRIMARY KEY (id),
+  CONSTRAINT fk_proj_user
+    FOREIGN KEY (user_id)     REFERENCES users      (id) ON DELETE CASCADE,
   CONSTRAINT fk_project_category
-    FOREIGN KEY (category_id) REFERENCES categories (id)
-    ON DELETE SET NULL
+    FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
@@ -40,12 +56,15 @@ CREATE TABLE IF NOT EXISTS projects (
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS time_entries (
   id          VARCHAR(36)  NOT NULL,
+  user_id     INT          NULL,
   date        DATE         NOT NULL,
   start_hour  TINYINT      NOT NULL COMMENT '0–23',
   end_hour    TINYINT      NOT NULL COMMENT '1–24, always start_hour + 1',
   description VARCHAR(500) NULL,
   PRIMARY KEY (id),
-  INDEX idx_entry_date (date)
+  INDEX idx_entry_date (date),
+  CONSTRAINT fk_te_user
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
@@ -58,7 +77,7 @@ CREATE TABLE IF NOT EXISTS entry_projects (
   CONSTRAINT fk_ep_entry
     FOREIGN KEY (entry_id)   REFERENCES time_entries (id) ON DELETE CASCADE,
   CONSTRAINT fk_ep_project
-    FOREIGN KEY (project_id) REFERENCES projects (id)     ON DELETE CASCADE
+    FOREIGN KEY (project_id) REFERENCES projects     (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
@@ -66,10 +85,13 @@ CREATE TABLE IF NOT EXISTS entry_projects (
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS todos (
   id         VARCHAR(36)  NOT NULL,
+  user_id    INT          NULL,
   text       VARCHAR(500) NOT NULL,
   done       BOOLEAN      NOT NULL DEFAULT FALSE,
   sort_order INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  CONSTRAINT fk_td_user
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
@@ -86,16 +108,16 @@ CREATE TABLE IF NOT EXISTS todo_projects (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ------------------------------------------------------------
--- Settings  (single row, id always = 1)
+-- Settings  (one row per user)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS settings (
-  id         INT         NOT NULL DEFAULT 1,
+  id         INT         NOT NULL AUTO_INCREMENT,
+  user_id    INT         NULL,
   theme      VARCHAR(10) NOT NULL DEFAULT 'light',
   time_range VARCHAR(20) NOT NULL DEFAULT 'work',
   view_mode  VARCHAR(20) NOT NULL DEFAULT 'week',
   PRIMARY KEY (id),
-  CONSTRAINT chk_settings_singleton CHECK (id = 1)
+  UNIQUE KEY uq_settings_user (user_id),
+  CONSTRAINT fk_st_user
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- Seed default settings row
-INSERT IGNORE INTO settings (id) VALUES (1);

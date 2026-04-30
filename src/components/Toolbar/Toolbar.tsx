@@ -1,6 +1,7 @@
 import './Toolbar.css';
 
 interface ToolbarProps {
+  username: string;
   dateRangeLabel: string;
   isAnalyticsActive: boolean;
   onPrev: () => void;
@@ -12,7 +13,12 @@ interface ToolbarProps {
   onCopyLastWeekClick: () => void;
 }
 
+function formatUsername(username: string): string {
+  return username.split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('.');
+}
+
 export function Toolbar({
+  username,
   dateRangeLabel,
   isAnalyticsActive,
   onPrev,
@@ -51,6 +57,7 @@ export function Toolbar({
         <button className="toolbar__btn toolbar__btn--copy-week" onClick={onCopyLastWeekClick}>
           ⧉ Copy last week
         </button>
+        <span className="toolbar__greeting">Hi {formatUsername(username)}</span>
       </div>
     </div>
   );

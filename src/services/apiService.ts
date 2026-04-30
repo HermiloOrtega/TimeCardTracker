@@ -3,18 +3,41 @@
  * Replaces storageService.ts for data persistence.
  */
 
-import type { Project, TimeEntry, CategoryDef, TodoItem, AppSettings } from '../models/types';
+import type { Project, TimeEntry, CategoryDef, TodoItem, AppSettings, User } from '../models/types';
 
 const BASE = '/api';
 
+let _username: string | null = null;
+
+/** Called once after login to attach the username to every subsequent request. */
+export function setCurrentUser(username: string) {
+  _username = username;
+}
+
 async function req<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (body) headers['Content-Type'] = 'application/json';
+  if (_username) headers['X-Username'] = _username;
+
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers,
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`API ${method} ${path} → ${res.status}`);
   return res.json() as Promise<T>;
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export async function apiLogin(username: string, password: string): Promise<User> {
+  const res = await fetch(`${BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!res.ok) throw new Error('Invalid credentials');
+  return res.json() as Promise<User>;
 }
 
 // ─── Categories ───────────────────────────────────────────────────────────────

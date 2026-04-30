@@ -3,18 +3,20 @@ import pool from '../db.js';
 
 const router = Router();
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   const [rows] = await pool.query(`
     SELECT t.*, GROUP_CONCAT(tp.project_id) AS project_ids
     FROM todos t
     LEFT JOIN todo_projects tp ON tp.todo_id = t.id
+    WHERE t.user_id = ?
     GROUP BY t.id
     ORDER BY t.sort_order, t.id
-  `);
+  `, [req.userId]);
   const todos = rows.map(r => ({
     ...r,
     projectIds: r.project_ids ? r.project_ids.split(',') : [],
     project_ids: undefined,
+    user_id: undefined,
   }));
   res.json(todos);
 });
@@ -24,7 +26,10 @@ router.post('/', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-    await conn.query('INSERT INTO todos (id, text, done, sort_order) VALUES (?, ?, ?, ?)', [id, text, done, sort_order]);
+    await conn.query(
+      'INSERT INTO todos (id, user_id, text, done, sort_order) VALUES (?, ?, ?, ?, ?)',
+      [id, req.userId, text, done, sort_order]
+    );
     for (const pid of projectIds) {
       await conn.query('INSERT INTO todo_projects (todo_id, project_id) VALUES (?, ?)', [id, pid]);
     }
@@ -43,7 +48,10 @@ router.put('/:id', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-    await conn.query('UPDATE todos SET text=?, done=?, sort_order=? WHERE id=?', [text, done, sort_order, req.params.id]);
+    await conn.query(
+      'UPDATE todos SET text=?, done=?, sort_order=? WHERE id=? AND user_id=?',
+      [text, done, sort_order, req.params.id, req.userId]
+    );
     await conn.query('DELETE FROM todo_projects WHERE todo_id = ?', [req.params.id]);
     for (const pid of projectIds) {
       await conn.query('INSERT INTO todo_projects (todo_id, project_id) VALUES (?, ?)', [req.params.id, pid]);
@@ -59,7 +67,7 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  await pool.query('DELETE FROM todos WHERE id = ?', [req.params.id]);
+  await pool.query('DELETE FROM todos WHERE id = ? AND user_id = ?', [req.params.id, req.userId]);
   res.json({ ok: true });
 });
 

@@ -14,11 +14,13 @@ import express    from 'express';
 import path       from 'path';
 import { fileURLToPath } from 'url';
 import pool       from './db.js';
-import entriesRouter   from './routes/entries.js';
-import projectsRouter  from './routes/projects.js';
+import entriesRouter    from './routes/entries.js';
+import projectsRouter   from './routes/projects.js';
 import categoriesRouter from './routes/categories.js';
-import todosRouter     from './routes/todos.js';
-import settingsRouter  from './routes/settings.js';
+import todosRouter      from './routes/todos.js';
+import settingsRouter   from './routes/settings.js';
+import authRouter       from './routes/auth.js';
+import { requireUser }  from './middleware/requireUser.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app  = express();
@@ -26,12 +28,15 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 
-// ── API routes ──────────────────────────────────────────────
-app.use('/api/entries',    entriesRouter);
-app.use('/api/projects',   projectsRouter);
-app.use('/api/categories', categoriesRouter);
-app.use('/api/todos',      todosRouter);
-app.use('/api/settings',   settingsRouter);
+// ── Auth (no user middleware needed) ────────────────────────
+app.use('/api/auth', authRouter);
+
+// ── Protected API routes (require X-Username header) ────────
+app.use('/api/entries',    requireUser, entriesRouter);
+app.use('/api/projects',   requireUser, projectsRouter);
+app.use('/api/categories', requireUser, categoriesRouter);
+app.use('/api/todos',      requireUser, todosRouter);
+app.use('/api/settings',   requireUser, settingsRouter);
 
 // ── Serve frontend (production) ──────────────────────────────
 if (process.env.NODE_ENV === 'production') {

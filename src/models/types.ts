@@ -1,5 +1,10 @@
 export type ViewMode = 'week-with-weekends' | 'week-without-weekends' | 'daily';
 
+export interface User {
+  id: number;
+  username: string;
+}
+
 export type Theme = 'light' | 'dark';
 
 /** work = 9–5, extended = 8–6 (default), full = 6am–10pm */

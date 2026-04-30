@@ -92,3 +92,12 @@
 .toolbar__btn--copy-week:hover {
   background: var(--color-hover);
 }
+
+.toolbar__greeting {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #666);
+  padding-left: 12px;
+  border-left: 1px solid var(--color-border);
+  white-space: nowrap;
+}

@@ -25,6 +25,7 @@ type DropPending = { todoId: string; date: string; hour: number } | null;
 type AppView = 'calendar' | 'analytics';
 
 interface CalendarShellProps {
+  username: string;
   entries: TimeEntry[];
   projects: Project[];
   categories: CategoryDef[];
@@ -48,6 +49,7 @@ interface CalendarShellProps {
 }
 
 export function CalendarShell({
+  username,
   entries,
   projects,
   categories,
@@ -198,6 +200,7 @@ export function CalendarShell({
   return (
     <div className="calendar-shell">
       <Toolbar
+        username={username}
         dateRangeLabel={dateRangeLabel}
         isAnalyticsActive={appView === 'analytics'}
         onPrev={handlePrev}

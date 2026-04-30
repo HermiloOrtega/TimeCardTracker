@@ -96,10 +96,10 @@ export function setEntries(entries: TimeEntry[]): void {
 // Runs only once (when tct_categories is absent). Idempotent.
 
 const LEGACY_SEED: Record<string, CategoryDef> = {
-  quattro:  { id: 'cat-quattro',  name: 'Quattro',       color: '#4CAF50' },
-  ram_ibex: { id: 'cat-ram_ibex', name: 'RAM / IbexIQ',  color: '#2196F3' },
-  multi:    { id: 'cat-multi',    name: 'Multi-company',  color: '#9C27B0' },
-  personal: { id: 'cat-personal', name: 'Personal',       color: '#FFC107' },
+  company_a: { id: 'cat-company-a', name: 'Company A',    color: '#4CAF50' },
+  company_b: { id: 'cat-company-b', name: 'Company B',    color: '#2196F3' },
+  multi:     { id: 'cat-multi',     name: 'Multi-company', color: '#9C27B0' },
+  personal:  { id: 'cat-personal',  name: 'Personal',      color: '#FFC107' },
 };
 
 export function migrateIfNeeded(): void {
