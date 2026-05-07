@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { TimeEntry, Project, CategoryDef } from '../../models/types';
 import { toDateString } from '../../utils/dateUtils';
 import { getCategoryColor } from '../../utils/colorUtils';
@@ -17,6 +17,8 @@ function formatHours(h: number): string {
 }
 
 export function TimeDistribution({ entries, projects, categories, days }: TimeDistributionProps) {
+  const [collapsed, setCollapsed] = useState(false);
+
   const weekDateStrings = useMemo(() => new Set(days.map(d => toDateString(d))), [days]);
 
   const categoryHours = useMemo(() => {
@@ -127,62 +129,85 @@ export function TimeDistribution({ entries, projects, categories, days }: TimeDi
 
   return (
     <div className="time-dist">
-      <div className="time-dist__header">
+      <div className={`time-dist__header${collapsed ? ' time-dist__header--collapsed' : ''}`}>
         <span className="time-dist__title">Time Distribution</span>
         {workSummary && (
           <span className={`time-dist__work-summary${workSummary.isOver ? ' time-dist__work-summary--over' : ''}`}>
             ({workSummary.label})
           </span>
         )}
+        <button
+          className="time-dist__toggle"
+          onClick={() => setCollapsed(c => !c)}
+          title={collapsed ? 'Expand' : 'Collapse'}
+        >
+          <svg
+            className={`time-dist__toggle-chevron${!collapsed ? ' time-dist__toggle-chevron--down' : ''}`}
+            viewBox="0 0 10 6"
+            width="10"
+            height="6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="0,5 5,1 10,5" />
+          </svg>
+        </button>
         <span className="time-dist__week-label">{weekLabel}</span>
       </div>
 
-      <div className="time-dist__rows">
-        {rows.map(row => {
-          const pct = row.target != null && row.target > 0 ? Math.min(row.logged / row.target, 1) : 0;
-          const over = row.target != null && row.target > 0 && row.logged > row.target;
-          const warn = row.target != null && row.target > 0 && !over && row.logged / row.target >= 0.75;
-          const excess = over && row.target != null ? row.logged - row.target : 0;
+      {!collapsed && (
+        <>
+          <div className="time-dist__rows">
+            {rows.map(row => {
+              const pct = row.target != null && row.target > 0 ? Math.min(row.logged / row.target, 1) : 0;
+              const over = row.target != null && row.target > 0 && row.logged > row.target;
+              const warn = row.target != null && row.target > 0 && !over && row.logged / row.target >= 0.75;
+              const excess = over && row.target != null ? row.logged - row.target : 0;
 
-          let barClass = 'time-dist__bar-track';
-          if (over) barClass += ' time-dist__bar-track--over';
-          else if (warn) barClass += ' time-dist__bar-track--warn';
+              let barClass = 'time-dist__bar-track';
+              if (over) barClass += ' time-dist__bar-track--over';
+              else if (warn) barClass += ' time-dist__bar-track--warn';
 
-          return (
-            <div key={row.id} className="time-dist__row">
-              <div className="time-dist__row-meta">
-                <span className="time-dist__dot" style={{ background: row.color }} />
-                <span className="time-dist__cat-name">{row.name}</span>
-                <span className="time-dist__hours">
-                  {formatHours(row.logged)}
+              return (
+                <div key={row.id} className="time-dist__row">
+                  <div className="time-dist__row-meta">
+                    <span className="time-dist__dot" style={{ background: row.color }} />
+                    <span className="time-dist__cat-name">{row.name}</span>
+                    <span className="time-dist__hours">
+                      {formatHours(row.logged)}
+                      {row.target != null && row.target > 0 && (
+                        <> / <span className={over ? 'time-dist__hours--over' : ''}>{formatHours(row.target)}</span></>
+                      )}
+                      {over && (
+                        <span className="time-dist__excess"> (+{formatHours(excess)} over)</span>
+                      )}
+                    </span>
+                  </div>
                   {row.target != null && row.target > 0 && (
-                    <> / <span className={over ? 'time-dist__hours--over' : ''}>{formatHours(row.target)}</span></>
+                    <div className={barClass}>
+                      <div
+                        className="time-dist__bar-fill"
+                        style={{ width: `${pct * 100}%`, background: row.color }}
+                      />
+                    </div>
                   )}
-                  {over && (
-                    <span className="time-dist__excess"> (+{formatHours(excess)} over)</span>
-                  )}
-                </span>
-              </div>
-              {row.target != null && row.target > 0 && (
-                <div className={barClass}>
-                  <div
-                    className="time-dist__bar-fill"
-                    style={{ width: `${pct * 100}%`, background: row.color }}
-                  />
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
 
-      {totalTarget > 0 && (
-        <div className="time-dist__footer">
-          <span>Total this week:</span>
-          <span className={totalLogged > totalTarget ? 'time-dist__hours--over' : ''}>
-            {formatHours(totalLogged)} / {formatHours(totalTarget)}
-          </span>
-        </div>
+          {totalTarget > 0 && (
+            <div className="time-dist__footer">
+              <span>Total this week:</span>
+              <span className={totalLogged > totalTarget ? 'time-dist__hours--over' : ''}>
+                {formatHours(totalLogged)} / {formatHours(totalTarget)}
+              </span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
